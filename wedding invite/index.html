@@ -5,211 +5,192 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Undangan Pernikahan - Rian & Aulia</title>
     
-    <!-- Tailwind CSS for styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts for elegant typography -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&display=swap" rel="stylesheet">
     
-    <!-- Lucide Icons for modern icons -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        /* Custom styles for fonts, animations, and glassmorphism effect */
+        /* Custom styles for the refined gold theme */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0a192f; /* Dark Navy Blue */
-            color: #d4d4d8;
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.1), transparent 40%),
-                radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.1), transparent 40%);
-        }
-        .font-serif {
             font-family: 'Playfair Display', serif;
+            /* Refined Gold Gradient with subtle noise texture for a premium feel */
+            background-color: #a8874a;
+            background-image: 
+                radial-gradient(ellipse at top, #d4c098, transparent),
+                linear-gradient(to bottom, #a8874a, #7a5c29);
+            color: #2c2519; /* Very dark, warm brown for main text */
+        }
+        .font-cursive {
+            font-family: 'Great Vibes', cursive;
         }
         
-        /* Animation for elements that fade in on scroll */
+        /* Animation for elements */
         .fade-in-element {
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
         .fade-in-element.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
 
-        /* Custom scrollbar for a more polished look */
+        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a192f; }
-        ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #c09e2a; }
+        ::-webkit-scrollbar-track { background: #7a5c29; }
+        ::-webkit-scrollbar-thumb { background: #fdf6e9; border-radius: 10px; }
         
-        /* Animation for spinning music icon */
+        /* Spinning music icon */
         .spinning { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* Glassmorphism Effect Class */
+        /* Harmonized Glassmorphism Effect */
         .glass-effect {
-            background: rgba(28, 44, 69, 0.5); /* Semi-transparent navy */
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(212, 175, 55, 0.15);
+            background: rgba(44, 37, 25, 0.45); /* Darker, warmer transparent base */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(253, 246, 233, 0.2); /* Creamy white border */
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
-        .nav-link.active i, .nav-link.active span { color: #fbbF24; /* Amber 400 */ }
+        .nav-link.active i, .nav-link.active span { color: #fdf6e9; font-weight: 600; }
     </style>
 </head>
 <body class="overflow-x-hidden">
 
     <!-- Audio Player -->
     <audio id="background-music" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
-        Browser Anda tidak mendukung elemen audio.
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Tombol Kontrol Musik -->
-    <button id="music-toggle" class="fixed bottom-24 right-5 z-40 w-12 h-12 glass-effect rounded-full flex items-center justify-center text-amber-400 transition-transform hover:scale-110">
+    <!-- Music Control Button -->
+    <button id="music-toggle" class="fixed bottom-24 right-5 z-40 w-12 h-12 glass-effect rounded-full flex items-center justify-center text-[#fdf6e9] transition-transform hover:scale-110">
         <i data-lucide="music" class="w-6 h-6"></i>
     </button>
 
-    <!-- Halaman Pembuka (Cover) -->
-    <div id="cover" class="fixed inset-0 bg-cover bg-center bg-no-repeat flex items-center justify-center z-50 transition-opacity duration-1000" style="background-image: url('https://placehold.co/600x900/0a192f/d4af37?text=R+%26+A'); background-color: #0a192f;">
-        <div class="absolute inset-0 bg-black/60"></div>
-        <div class="text-center text-white z-10 p-4">
-            <p class="text-lg tracking-widest">THE WEDDING OF</p>
-            <h1 class="font-serif text-6xl my-4 text-amber-300">Rian & Aulia</h1>
-            <p class="mb-8">Kepada Yth. Bapak/Ibu/Saudara/i:</p>
-            <h2 id="guest-name" class="text-2xl font-bold mb-8 bg-black/30 p-3 rounded-lg"></h2>
-            <button id="open-invitation" class="bg-amber-400 text-slate-900 font-bold py-3 px-8 rounded-full hover:bg-amber-300 transition-all duration-300 shadow-lg flex items-center gap-2 mx-auto">
-                <i data-lucide="mail-open" class="w-5 h-5"></i>
-                Buka Undangan
-            </button>
-        </div>
-    </div>
-
-    <!-- Konten Utama Undangan -->
-    <main id="main-content" class="opacity-0 transition-opacity duration-1000">
+    <!-- Main Invitation Content -->
+    <main id="main-content">
         <div class="max-w-lg mx-auto px-4">
             <!-- Hero Section -->
-            <header id="home" class="h-screen flex items-center justify-center section -mx-4">
-                <div class="h-full w-full bg-cover bg-center bg-fixed" style="background-image: url('https://placehold.co/600x900/0a192f/d4af37?text=Foto+Pre-wedding');">
-                    <div class="absolute inset-0 bg-black/50"></div>
-                    <div class="relative z-10 flex flex-col items-center justify-center h-full text-center text-white p-4 fade-in-element">
-                        <p class="text-lg tracking-widest">We Are Getting Married</p>
-                        <h1 class="font-serif text-7xl my-4 text-amber-300">Rian & Aulia</h1>
-                        <p class="text-xl">10 . 12 . 2025</p>
-                    </div>
+            <header id="home" class="h-screen flex flex-col items-center justify-center text-center section -mx-4">
+                <div class="text-center p-4 fade-in-element is-visible">
+                     <p class="text-lg tracking-widest text-[#2c2519]">The Wedding Of</p>
+                     <h1 class="font-cursive text-8xl my-4 text-[#fdf6e9] drop-shadow-lg">Rian & Aulia</h1>
+                     <p class="text-md font-semibold text-[#2c2519]">Kepada Yth. Bapak/Ibu/Saudara/i:</p>
+                     <p id="guest-name" class="text-xl font-bold mt-2 text-white bg-black/20 p-3 rounded-lg"></p>
                 </div>
             </header>
 
-            <!-- Profil Mempelai -->
+            <!-- Couple Profile -->
             <section class="py-20 section" id="pasangan">
-                <div class="glass-effect rounded-3xl p-8 fade-in-element text-center">
-                    <h2 class="font-serif text-4xl text-amber-400 mb-2">The Beloved Couple</h2>
-                    <p class="mb-10 text-sm text-gray-300">Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan kami:</p>
+                <div class="glass-effect rounded-3xl p-8 fade-in-element text-center text-[#fdf6e9]">
+                    <h2 class="text-4xl mb-10">The Beloved Couple</h2>
                     <div class="space-y-10">
                         <div class="fade-in-element">
-                            <img src="https://placehold.co/400x400/334155/d4af37?text=Rian" alt="Rian" class="w-40 h-40 rounded-full mx-auto mb-4 border-4 border-amber-400/50">
-                            <h3 class="font-serif text-3xl text-amber-300">Rian Hidayat</h3>
-                            <p class="mt-1 text-sm text-gray-400">Putra Pertama dari Bapak John Doe & Ibu Jane Doe</p>
+                            <img src="https://placehold.co/400x400/2c2519/fdf6e9?text=R" alt="Rian" class="w-40 h-40 rounded-full mx-auto mb-4 border-4 border-[#fdf6e9]/50">
+                            <h3 class="font-cursive text-5xl">Rian Hidayat</h3>
+                            <p class="mt-2 text-sm text-gray-300">Putra Pertama dari Bapak John Doe & Ibu Jane Doe</p>
                         </div>
-                        <div class="font-serif text-4xl text-amber-400">&</div>
+                        <div class="font-cursive text-4xl">&</div>
                         <div class="fade-in-element">
-                            <img src="https://placehold.co/400x400/334155/d4af37?text=Aulia" alt="Aulia" class="w-40 h-40 rounded-full mx-auto mb-4 border-4 border-amber-400/50">
-                            <h3 class="font-serif text-3xl text-amber-300">Aulia Putri</h3>
-                            <p class="mt-1 text-sm text-gray-400">Putri Kedua dari Bapak Richard Roe & Ibu Rachel Roe</p>
+                            <img src="https://placehold.co/400x400/2c2519/fdf6e9?text=A" alt="Aulia" class="w-40 h-40 rounded-full mx-auto mb-4 border-4 border-[#fdf6e9]/50">
+                            <h3 class="font-cursive text-5xl">Aulia Putri</h3>
+                            <p class="mt-2 text-sm text-gray-300">Putri Kedua dari Bapak Richard Roe & Ibu Rachel Roe</p>
                         </div>
                     </div>
                 </div>
             </section>
             
-            <!-- Detail Acara (Lokasi) -->
+            <!-- Event Details (Location) -->
             <section id="lokasi" class="py-20 section">
                 <div class="text-center fade-in-element space-y-8">
-                    <h2 class="font-serif text-5xl text-amber-400">Save The Date</h2>
-                    <div class="glass-effect rounded-3xl p-8 fade-in-element">
-                        <h3 class="font-serif text-3xl text-amber-300 mb-4">Akad Nikah</h3>
-                        <p><i data-lucide="calendar-days" class="w-4 h-4 inline mr-2 text-amber-400"></i>Rabu, 10 Desember 2025</p>
-                        <p class="mb-4"><i data-lucide="clock" class="w-4 h-4 inline mr-2 text-amber-400"></i>Pukul 09:00 WIB</p>
-                        <p class="mb-6 text-sm"><i data-lucide="map-pin" class="w-4 h-4 inline mr-2 text-amber-400"></i>Gedung Serbaguna B, Jl. Merdeka No. 123, Jakarta</p>
-                        <a href="#" class="bg-amber-400 text-slate-900 font-bold py-2 px-6 rounded-full text-sm hover:bg-amber-300 transition-all duration-300 inline-block">Buka Peta</a>
+                    <h2 class="text-5xl text-[#fdf6e9] drop-shadow-md">Save The Date</h2>
+                    <div class="glass-effect rounded-3xl p-8 fade-in-element text-[#fdf6e9]">
+                        <h3 class="text-3xl mb-4">Akad Nikah</h3>
+                        <p class="font-sans"><i data-lucide="calendar-days" class="w-4 h-4 inline mr-2"></i>Rabu, 10 Desember 2025</p>
+                        <p class="mb-4 font-sans"><i data-lucide="clock" class="w-4 h-4 inline mr-2"></i>Pukul 09:00 WIB</p>
+                        <p class="mb-6 text-sm font-sans"><i data-lucide="map-pin" class="w-4 h-4 inline mr-2"></i>Gedung Serbaguna B, Jakarta</p>
+                        <a href="#" class="bg-[#fdf6e9] text-[#2c2519] font-bold py-2 px-6 rounded-full text-sm hover:bg-opacity-90 transition-all duration-300 inline-block font-sans">Buka Peta</a>
                     </div>
-                    <div class="glass-effect rounded-3xl p-8 fade-in-element">
-                        <h3 class="font-serif text-3xl text-amber-300 mb-4">Resepsi</h3>
-                        <p><i data-lucide="calendar-days" class="w-4 h-4 inline mr-2 text-amber-400"></i>Rabu, 10 Desember 2025</p>
-                        <p class="mb-4"><i data-lucide="clock" class="w-4 h-4 inline mr-2 text-amber-400"></i>Pukul 11:00 - 14:00 WIB</p>
-                        <p class="mb-6 text-sm"><i data-lucide="map-pin" class="w-4 h-4 inline mr-2 text-amber-400"></i>Gedung Serbaguna B, Jl. Merdeka No. 123, Jakarta</p>
-                        <a href="#" class="bg-amber-400 text-slate-900 font-bold py-2 px-6 rounded-full text-sm hover:bg-amber-300 transition-all duration-300 inline-block">Buka Peta</a>
+                    <div class="glass-effect rounded-3xl p-8 fade-in-element text-[#fdf6e9]">
+                        <h3 class="text-3xl mb-4">Resepsi</h3>
+                         <p class="font-sans"><i data-lucide="calendar-days" class="w-4 h-4 inline mr-2"></i>Rabu, 10 Desember 2025</p>
+                        <p class="mb-4 font-sans"><i data-lucide="clock" class="w-4 h-4 inline mr-2"></i>Pukul 11:00 - 14:00 WIB</p>
+                        <p class="mb-6 text-sm font-sans"><i data-lucide="map-pin" class="w-4 h-4 inline mr-2"></i>Gedung Serbaguna B, Jakarta</p>
+                        <a href="#" class="bg-[#fdf6e9] text-[#2c2519] font-bold py-2 px-6 rounded-full text-sm hover:bg-opacity-90 transition-all duration-300 inline-block font-sans">Buka Peta</a>
                     </div>
                     <!-- Countdown Timer -->
-                    <div id="countdown" class="grid grid-cols-4 gap-3 text-white pt-4">
-                        <div class="glass-effect rounded-2xl p-3"><p id="days" class="text-3xl font-bold text-amber-300">00</p><p class="text-xs">Hari</p></div>
-                        <div class="glass-effect rounded-2xl p-3"><p id="hours" class="text-3xl font-bold text-amber-300">00</p><p class="text-xs">Jam</p></div>
-                        <div class="glass-effect rounded-2xl p-3"><p id="minutes" class="text-3xl font-bold text-amber-300">00</p><p class="text-xs">Menit</p></div>
-                        <div class="glass-effect rounded-2xl p-3"><p id="seconds" class="text-3xl font-bold text-amber-300">00</p><p class="text-xs">Detik</p></div>
+                    <div id="countdown" class="grid grid-cols-4 gap-3 text-white pt-4 font-sans">
+                        <div class="glass-effect rounded-2xl p-3"><p id="days" class="text-3xl font-bold">00</p><p class="text-xs">Hari</p></div>
+                        <div class="glass-effect rounded-2xl p-3"><p id="hours" class="text-3xl font-bold">00</p><p class="text-xs">Jam</p></div>
+                        <div class="glass-effect rounded-2xl p-3"><p id="minutes" class="text-3xl font-bold">00</p><p class="text-xs">Menit</p></div>
+                        <div class="glass-effect rounded-2xl p-3"><p id="seconds" class="text-3xl font-bold">00</p><p class="text-xs">Detik</p></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Hadiah (Donate) -->
+            <!-- Gift (Donate) Section -->
             <section id="hadiah" class="py-20 section">
-                <div class="glass-effect rounded-3xl p-8 text-center fade-in-element">
-                    <h2 class="font-serif text-4xl text-amber-400 mb-4">Kirim Hadiah</h2>
-                    <p class="mb-8 text-sm text-gray-300">Doa restu Anda adalah karunia terindah. Namun jika memberi adalah ungkapan kasih, Anda dapat memberi kado secara cashless.</p>
-                    <button id="gift-button" class="bg-amber-400 text-slate-900 font-bold py-3 px-8 rounded-full hover:bg-amber-300 transition-all duration-300 inline-flex items-center gap-2">
+                <div class="glass-effect rounded-3xl p-8 text-center fade-in-element text-[#fdf6e9]">
+                    <h2 class="text-4xl mb-4">Kirim Hadiah</h2>
+                    <p class="mb-8 text-sm text-gray-200 font-sans">Doa restu Anda adalah karunia terindah. Namun jika memberi adalah ungkapan kasih, Anda dapat memberi kado secara cashless.</p>
+                    <button id="gift-button" class="bg-[#fdf6e9] text-[#2c2519] font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all duration-300 inline-flex items-center gap-2 font-sans">
                         <i data-lucide="gift" class="w-5 h-5"></i> Kirim Hadiah
                     </button>
                 </div>
             </section>
 
-            <!-- Pesan & Komentar -->
+            <!-- Messages & Comments Section -->
             <section id="pesan" class="py-20 section">
                 <div class="fade-in-element">
-                    <h2 class="font-serif text-5xl text-amber-400 mb-8 text-center">Pesan & Ucapan</h2>
-                    <div class="glass-effect rounded-3xl p-8 mb-8">
+                    <h2 class="text-5xl text-[#fdf6e9] mb-8 text-center drop-shadow-md">Pesan & Ucapan</h2>
+                    <div class="glass-effect rounded-3xl p-8 mb-8 font-sans">
                         <form id="comment-form">
                             <div class="mb-4">
-                                <input type="text" id="name" name="name" class="bg-slate-800/70 border border-slate-600 text-white text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-2.5 placeholder-gray-400" placeholder="Nama Anda" required>
+                                <input type="text" id="name" name="name" class="bg-black/20 border border-white/20 text-white text-sm rounded-lg focus:ring-[#fdf6e9] focus:border-[#fdf6e9] block w-full p-2.5 placeholder-gray-300" placeholder="Nama Anda" required>
                             </div>
                             <div class="mb-4">
-                                <textarea id="message" name="message" rows="4" class="bg-slate-800/70 border border-slate-600 text-white text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-2.5 placeholder-gray-400" placeholder="Tuliskan doa dan ucapan..." required></textarea>
+                                <textarea id="message" name="message" rows="4" class="bg-black/20 border border-white/20 text-white text-sm rounded-lg focus:ring-[#fdf6e9] focus:border-[#fdf6e9] block w-full p-2.5 placeholder-gray-300" placeholder="Tuliskan doa dan ucapan..." required></textarea>
                             </div>
-                            <button type="submit" class="bg-amber-400 text-slate-900 font-bold py-2.5 px-6 rounded-full hover:bg-amber-300 transition-all duration-300">Kirim</button>
+                            <button type="submit" class="bg-[#fdf6e9] text-[#2c2519] font-bold py-2.5 px-6 rounded-full hover:bg-opacity-90 transition-all duration-300">Kirim</button>
                         </form>
                     </div>
-                    <div id="comments-list" class="space-y-4">
-                        <div class="glass-effect rounded-2xl p-5 border-l-4 border-amber-400/50">
-                            <p class="font-bold text-amber-300 text-sm">Sahabat Lama</p>
-                            <p class="text-gray-300 mt-1 text-sm">Selamat menempuh hidup baru! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Bahagia selalu!</p>
+                    <div id="comments-list" class="space-y-4 font-sans">
+                        <div class="glass-effect rounded-2xl p-5 border-l-4 border-[#fdf6e9]/50 text-white">
+                            <p class="font-bold text-sm">Sahabat Lama</p>
+                            <p class="text-gray-200 mt-1 text-sm">Selamat menempuh hidup baru! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Bahagia selalu!</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- Footer -->
-            <footer class="pt-20 pb-32 text-center text-gray-400">
+            <footer class="pt-20 pb-32 text-center text-[#2c2519]">
                  <div class="fade-in-element">
-                    <p class="text-sm mb-4">Merupakan suatu kehormatan bagi kami apabila Anda berkenan hadir untuk memberikan doa restu.</p>
+                    <p class="text-sm mb-4 font-semibold">Merupakan suatu kehormatan bagi kami apabila Anda berkenan hadir untuk memberikan doa restu.</p>
                     <p class="font-semibold text-lg mb-6">Terima Kasih</p>
-                    <p class="font-serif text-4xl text-amber-300">Rian & Aulia</p>
+                    <p class="font-cursive text-6xl text-[#fdf6e9] drop-shadow-md">Rian & Aulia</p>
                  </div>
             </footer>
         </div>
     </main>
     
-    <!-- Modal Hadiah -->
+    <!-- Gift Modal -->
     <div id="gift-modal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="gift-modal-content" class="glass-effect rounded-3xl w-full max-w-sm p-8 text-center transform scale-95 transition-all duration-300 relative">
-            <h3 class="font-serif text-2xl text-amber-300 mb-4">Amplop Digital</h3>
-            <img src="https://placehold.co/150x50/ffffff/0a192f?text=Logo+Bank" class="h-10 mx-auto mb-4" alt="Bank Logo">
+        <div id="gift-modal-content" class="glass-effect rounded-3xl w-full max-w-sm p-8 text-center text-white transform scale-95 transition-all duration-300 relative font-sans">
+            <h3 class="font-serif text-2xl mb-4 text-[#fdf6e9]">Amplop Digital</h3>
+            <img src="https://placehold.co/150x50/2c2519/fdf6e9?text=Bank" class="h-10 mx-auto mb-4 rounded" alt="Bank Logo">
             <p class="text-sm">No. Rekening: 1234567890</p>
             <p class="font-bold text-lg mb-4">a.n. Rian Hidayat</p>
-            <button onclick="copyToClipboard('1234567890')" class="bg-amber-400 text-slate-900 text-sm font-bold py-2 px-4 rounded-full hover:bg-amber-300 transition-all duration-300 mb-4">Salin Nomor</button>
-            <p id="copy-feedback" class="text-sm text-green-400 h-4"></p>
-            <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <button onclick="copyToClipboard('1234567890')" class="bg-[#fdf6e9] text-[#2c2519] text-sm font-bold py-2 px-4 rounded-full hover:bg-opacity-90 transition-all duration-300 mb-4">Salin Nomor</button>
+            <p id="copy-feedback" class="text-sm text-green-300 h-4"></p>
+            <button id="close-modal-button" class="absolute top-4 right-4 text-gray-300 hover:text-white">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
         </div>
@@ -217,18 +198,18 @@
 
     <!-- Bottom Glass Navbar -->
     <div class="fixed bottom-4 left-4 right-4 z-40 flex justify-center">
-         <nav id="bottom-nav" class="w-full max-w-xs h-16 glass-effect rounded-full opacity-0 translate-y-10 transition-all duration-500 ease-out">
+         <nav id="bottom-nav" class="w-full max-w-xs h-16 glass-effect rounded-full font-sans">
             <div class="h-full flex justify-around items-center text-center">
-                <a href="#home" class="nav-link flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+                <a href="#home" class="nav-link flex flex-col items-center text-gray-300 hover:text-white transition-colors">
                     <i data-lucide="home" class="w-5 h-5 mb-1"></i><span class="text-xs">Home</span>
                 </a>
-                <a href="#lokasi" class="nav-link flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+                <a href="#lokasi" class="nav-link flex flex-col items-center text-gray-300 hover:text-white transition-colors">
                     <i data-lucide="map-pin" class="w-5 h-5 mb-1"></i><span class="text-xs">Lokasi</span>
                 </a>
-                <a href="#hadiah" class="nav-link flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+                <a href="#hadiah" class="nav-link flex flex-col items-center text-gray-300 hover:text-white transition-colors">
                     <i data-lucide="gift" class="w-5 h-5 mb-1"></i><span class="text-xs">Hadiah</span>
                 </a>
-                <a href="#pesan" class="nav-link flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+                <a href="#pesan" class="nav-link flex flex-col items-center text-gray-300 hover:text-white transition-colors">
                     <i data-lucide="message-square" class="w-5 h-5 mb-1"></i><span class="text-xs">Pesan</span>
                 </a>
             </div>
@@ -236,86 +217,89 @@
     </div>
     
     <script>
+        // Initialize Lucide Icons
         lucide.createIcons();
-        const cover = document.getElementById('cover');
-        const mainContent = document.getElementById('main-content');
-        const openInvitationButton = document.getElementById('open-invitation');
+        
+        // --- DOM Element Variables ---
         const guestNameElement = document.getElementById('guest-name');
         const backgroundMusic = document.getElementById('background-music');
         const musicToggleButton = document.getElementById('music-toggle');
         const musicIcon = musicToggleButton.querySelector('i');
-        const bottomNav = document.getElementById('bottom-nav');
         const giftButton = document.getElementById('gift-button');
         const giftModal = document.getElementById('gift-modal');
         const giftModalContent = document.getElementById('gift-modal-content');
         const closeModalButton = document.getElementById('close-modal-button');
+        
+        // --- Page Logic ---
+        
+        // Function to start music safely
+        function playMusic() {
+            if (backgroundMusic.paused) {
+                backgroundMusic.play().then(() => {
+                    musicIcon.classList.add('spinning');
+                }).catch(e => {
+                    console.log("Autoplay was prevented by the browser.");
+                });
+            }
+        }
 
-        // 1. Tampilkan nama tamu dari URL
+        // Start music on first user interaction (tap anywhere)
+        document.body.addEventListener('click', playMusic, { once: true });
+        
+        // 1. Display guest name from URL
         const urlParams = new URLSearchParams(window.location.search);
         const guest = urlParams.get('to');
         guestNameElement.textContent = guest ? guest.replace(/%20/g, " ") : 'Tamu Undangan';
-
-        // 2. Buka undangan
-        openInvitationButton.addEventListener('click', () => {
-            cover.style.opacity = '0';
-            setTimeout(() => cover.style.display = 'none', 1000);
-            
-            mainContent.style.opacity = '1';
-            bottomNav.classList.remove('opacity-0', 'translate-y-10');
-
-            backgroundMusic.play().catch(e => console.log("Autoplay dicegah browser."));
-            musicIcon.classList.add('spinning');
-            
-            window.scrollTo(0, 0);
-        });
         
-        // 3. Countdown Timer
-        const weddingDate = new Date(2025, 11, 10, 9, 0, 0).getTime();
-        setInterval(() => {
+        // 2. Countdown Timer
+        const weddingDate = new Date("Dec 10, 2025 09:00:00").getTime();
+        const countdownInterval = setInterval(() => {
             const now = new Date().getTime();
             const distance = weddingDate - now;
             if (distance < 0) {
-                document.getElementById("countdown").innerHTML = "<div class='col-span-4 text-sm font-serif text-amber-300'>Acara Telah Berlangsung</div>";
+                clearInterval(countdownInterval);
+                document.getElementById("countdown").innerHTML = "<div class='col-span-4 text-sm font-serif text-white'>Acara Telah Berlangsung</div>";
                 return;
             }
-            document.getElementById("days").innerText = Math.floor(distance/(1000*60*60*24)).toString().padStart(2,'0');
-            document.getElementById("hours").innerText = Math.floor((distance%(1000*60*60*24))/(1000*60*60)).toString().padStart(2,'0');
-            document.getElementById("minutes").innerText = Math.floor((distance%(1000*60*60))/(1000*60)).toString().padStart(2,'0');
-            document.getElementById("seconds").innerText = Math.floor((distance%(1000*60))/1000).toString().padStart(2,'0');
+            document.getElementById("days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+            document.getElementById("hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            document.getElementById("minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            document.getElementById("seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
         }, 1000);
 
-        // 4. Animasi Fade-in saat scroll
+        // 3. Fade-in animation on scroll
         const fadeInObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
             });
         }, { threshold: 0.1 });
         document.querySelectorAll('.fade-in-element').forEach(el => fadeInObserver.observe(el));
         
-        // 5. Kontrol Musik
+        // 4. Music toggle control
         musicToggleButton.addEventListener('click', () => {
             if (backgroundMusic.paused) {
-                backgroundMusic.play();
-                musicIcon.classList.add('spinning');
+                playMusic();
             } else {
                 backgroundMusic.pause();
                 musicIcon.classList.remove('spinning');
             }
         });
         
-        // 6. Form Komentar (simulasi)
+        // 5. Comment form (simulation)
         document.getElementById('comment-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const name = e.target.name.value;
             const message = e.target.message.value;
             const newComment = document.createElement('div');
-            newComment.className = "glass-effect rounded-2xl p-5 border-l-4 border-amber-400/50";
-            newComment.innerHTML = `<p class="font-bold text-amber-300 text-sm">${name}</p><p class="text-gray-300 mt-1 text-sm">${message}</p>`;
+            newComment.className = "glass-effect rounded-2xl p-5 border-l-4 border-[#fdf6e9]/50 text-white";
+            newComment.innerHTML = `<p class="font-bold text-sm">${name}</p><p class="text-gray-200 mt-1 text-sm">${message}</p>`;
             document.getElementById('comments-list').prepend(newComment);
             e.target.reset();
         });
 
-        // 7. Navigasi Aktif saat Scroll
+        // 6. Active navigation link on scroll
         const navObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -327,7 +311,7 @@
         }, { rootMargin: "-50% 0px -50% 0px" });
         document.querySelectorAll('.section').forEach(section => navObserver.observe(section));
 
-        // 8. Logika Modal Hadiah
+        // 7. Gift Modal Logic
         const closeModal = () => {
             giftModal.classList.add('opacity-0', 'pointer-events-none');
             giftModalContent.classList.add('scale-95');
@@ -339,11 +323,10 @@
         closeModalButton.addEventListener('click', closeModal);
         giftModal.addEventListener('click', (e) => { if (e.target === giftModal) closeModal(); });
 
-        // 9. Fungsi Salin ke Clipboard
+        // 8. Copy to Clipboard function
         function copyToClipboard(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            textArea.style.position = "fixed";
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
