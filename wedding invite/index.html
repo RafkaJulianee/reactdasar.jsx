@@ -7,24 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { 
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* slate-50 */
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f7f7;
         }
-        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
-        .fade-in-fast { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(10px); } 
+        .fade-in { animation: fadeIn 0.5s ease-out both; }
+        .slide-up { animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(30px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-        }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 100; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -32,173 +28,192 @@
 <body class="text-slate-800">
 
     <!-- Main Content -->
-    <main class="container mx-auto px-5 pt-8 pb-32">
-        <header class="mb-8">
-            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Menu Pilihan</h1>
-            <p class="text-slate-500 mt-2">Pesan dan nikmati hidangan terbaik kami.</p>
+    <main class="container mx-auto px-5 pt-6 pb-32">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">Menu</h1>
+                <p class="text-slate-500 text-sm">Cari makanan favoritmu</p>
+            </div>
+            <div class="w-12 h-12 bg-white rounded-full shadow-md flex items-center justify-center">
+                <img src="https://placehold.co/48x48/E2E8F0/475569?text=A" alt="Avatar" class="rounded-full">
+            </div>
         </header>
-        
-        <div id="menu-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+
+        <!-- Search Bar -->
+        <div class="relative mb-6">
+            <input type="text" placeholder="Search for anything" class="w-full pl-12 pr-4 py-3 bg-white rounded-full shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+
+        <!-- Categories -->
+        <div class="mb-6">
+            <div id="category-filter" class="flex space-x-4 overflow-x-auto no-scrollbar pb-2">
+                <!-- Categories will be injected here -->
+            </div>
+        </div>
+
+        <!-- Promo Banner -->
+        <div class="bg-red-700 rounded-2xl p-5 flex items-center justify-between text-white mb-8 shadow-lg shadow-red-500/20">
+            <div>
+                <h3 class="font-bold text-lg">Dapatkan Gratis!</h3>
+                <p class="text-sm opacity-90">Minuman dingin di setiap pesanan burger.</p>
+                <button class="mt-3 bg-white text-red-700 font-bold text-xs px-4 py-1.5 rounded-full">Lihat Promo</button>
+            </div>
             <!--  -->
+            <img src="https://www.freepnglogos.com/uploads/coca-cola-png/coca-cola-bottle-png-images-download-2.png" class="w-12 -mr-2">
+            <img src="https://assets.stickpng.com/images/580b57fcd9996e24bc43c1a8.png" class="w-24 -ml-4 transform -rotate-12">
+        </div>
+
+        <!-- Today's Deal -->
+        <h2 class="text-xl font-bold text-slate-900 mb-4">Menu Hari Ini</h2>
+        <div id="menu-container" class="grid grid-cols-2 gap-x-4 gap-y-6">
             <!-- Menu items will be injected here by JavaScript -->
         </div>
     </main>
 
-    <!-- Bottom Glass Navbar -->
-    <nav class="fixed bottom-0 left-0 right-0 p-4 z-50">
-        <div class="max-w-md mx-auto bg-white/70 backdrop-blur-xl border border-white/30 rounded-full shadow-2xl shadow-slate-300/20 flex justify-around items-center p-2">
-             <a href="#" class="flex flex-col items-center text-slate-600 hover:text-sky-500 transition-colors p-2 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                <span class="text-xs font-medium mt-0.5">Home</span>
-            </a>
-            <a href="#" class="flex flex-col items-center text-slate-600 hover:text-sky-500 transition-colors p-2 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                <span class="text-xs font-medium mt-0.5">Promo</span>
-            </a>
-            <button id="cartButton" class="relative bg-sky-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg shadow-sky-500/30 transform -translate-y-4 hover:scale-110 transition-transform">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                <span id="cartCount" class="absolute top-1 right-1 bg-white text-sky-500 text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+    <!-- Bottom Navbar -->
+    <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-50">
+        <div class="bg-white rounded-full shadow-xl flex justify-around items-center p-2.5">
+            <a href="#" class="text-red-600"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg></a>
+            <a href="#" class="text-slate-400"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></a>
+            <button id="cartButton" class="relative text-slate-400">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span id="cartCount" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">0</span>
             </button>
-            <div class="flex flex-col items-center text-slate-600 p-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-500" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                <span id="userPoints" class="text-xs font-semibold text-slate-700 mt-0.5">0 Poin</span>
-            </div>
-            <a href="#" class="flex flex-col items-center text-slate-600 hover:text-sky-500 transition-colors p-2 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                 <span class="text-xs font-medium mt-0.5">Akun</span>
-            </a>
+            <a href="#" class="text-slate-400"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></a>
         </div>
     </nav>
     
-    <!-- Modals (Cart, Checkout) -->
-    <div id="cartModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-end justify-center sm:items-center p-4">
-        <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-lg mx-auto fade-in-fast">
+    <!-- Modals -->
+    <!-- Product Detail Modal -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm mx-auto slide-up relative">
+            <div class="h-56 -mt-16 flex justify-center items-center">
+                 <img id="detailImage" src="" alt="Product Image" class="max-h-full max-w-full drop-shadow-2xl">
+            </div>
+            <button id="closeDetailModal" class="absolute top-4 left-4 bg-white/70 backdrop-blur-sm rounded-full p-2 text-slate-800">&lt;</button>
+            <div class="p-6">
+                 <div class="flex justify-between items-start">
+                    <h3 id="detailName" class="text-2xl font-bold text-slate-900">Nama Produk</h3>
+                    <div class="flex items-center space-x-1 bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-sm font-bold">
+                        <span>⭐</span><span>4.5</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <div id="detailPoints" class="text-red-600 font-semibold">+0 Poin</div>
+                    <div id="detailPrice" class="text-2xl font-extrabold text-slate-900">Rp 0</div>
+                </div>
+                <p id="detailDesc" class="text-slate-500 mt-4 text-sm leading-relaxed">Deskripsi produk yang menarik akan ditampilkan di sini, menjelaskan kelezatan dan bahan-bahan berkualitas.</p>
+                <button id="detailAddToCart" class="mt-6 w-full bg-red-600 text-white font-bold py-4 rounded-full hover:bg-red-700 transition duration-300">Tambah ke Keranjang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-end">
+        <div class="bg-white rounded-t-3xl shadow-xl w-full slide-up">
              <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="text-xl font-semibold text-slate-800">Keranjang Belanja</h3>
+                <h3 class="text-xl font-semibold text-slate-800">Keranjang</h3>
                 <button id="closeCartModal" class="text-slate-400 hover:text-slate-800 text-3xl">&times;</button>
             </div>
-            <div id="cartItems" class="p-5 max-h-[50vh] overflow-y-auto no-scrollbar"></div>
-            <div class="p-5 bg-slate-50 rounded-b-2xl space-y-3">
+            <div id="cartItems" class="p-5 max-h-[40vh] overflow-y-auto no-scrollbar"></div>
+            <div class="p-5 bg-slate-50 rounded-b-3xl space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-lg font-medium text-slate-600">Total:</span>
-                    <span id="cartTotal" class="text-2xl font-bold text-sky-600">Rp 0</span>
+                    <span id="cartTotal" class="text-2xl font-bold text-red-600">Rp 0</span>
                 </div>
-                 <button id="redeemPointsButton" class="w-full bg-amber-500 text-white font-bold py-3 rounded-xl hover:bg-amber-600 transition duration-300 disabled:opacity-50">Tukar 1000 Poin</button>
-                <button id="checkoutButton" class="w-full bg-sky-500 text-white font-bold py-3 rounded-xl hover:bg-sky-600 transition duration-300 disabled:opacity-50">Lanjut ke Pembayaran</button>
+                <button id="checkoutButton" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition disabled:opacity-50">Lanjut Bayar</button>
             </div>
         </div>
     </div>
-    
-    <div id="checkoutModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-end justify-center sm:items-center p-4">
-        <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-lg mx-auto fade-in-fast">
-             <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="text-xl font-semibold text-slate-800">Detail Pesanan</h3>
-                <button id="closeCheckoutModal" class="text-slate-400 hover:text-slate-800 text-3xl">&times;</button>
-            </div>
-            <div class="p-5">
-                <div class="bg-slate-100 p-1 rounded-xl flex space-x-1">
-                    <button id="onlineTab" class="flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-sky-600 shadow">Pesan Online</button>
-                    <button id="offlineTab" class="flex-1 py-2 text-sm font-semibold rounded-lg text-slate-500">Makan di Tempat</button>
-                </div>
-                <form id="checkoutForm" class="mt-6">
-                    <div id="onlineForm">
-                        <label for="address" class="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
-                        <textarea id="address" rows="3" class="w-full rounded-lg border-slate-300 focus:border-sky-500 focus:ring-sky-500" required></textarea>
-                    </div>
-                    <div id="offlineForm" class="hidden">
-                        <label for="customerName" class="block text-sm font-medium text-slate-700 mb-1">Nama Pemesan</label>
-                        <input type="text" id="customerName" class="w-full rounded-lg border-slate-300 focus:border-sky-500 focus:ring-sky-500" required>
-                        <label for="tableNumber" class="mt-4 block text-sm font-medium text-slate-700 mb-1">Nomor Meja</label>
-                        <input type="number" id="tableNumber" class="w-full rounded-lg border-slate-300 focus:border-sky-500 focus:ring-sky-500" required>
-                    </div>
-                    <div class="mt-4">
-                        <label for="notes" class="block text-sm font-medium text-slate-700 mb-1">Catatan (Opsional)</label>
-                        <input type="text" id="notes" class="w-full rounded-lg border-slate-300 focus:border-sky-500 focus:ring-sky-500">
-                    </div>
-                </form>
-            </div>
-            <div class="p-5 bg-slate-50 rounded-b-2xl">
-                <button id="confirmOrderButton" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl hover:bg-emerald-600 transition duration-300">Konfirmasi Pesanan</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Toast Notifications Container -->
+    <!-- Checkout modal remains the same functionally, but can be styled similarly if needed -->
     <div id="toast-container" class="toast-container space-y-2"></div>
-
+    
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // STATE MANAGEMENT
+    // --- STATE & DATA ---
+    const CATEGORIES = [
+        { name: 'All', icon: '🍔' },
+        { name: 'Burger', icon: '🍔' },
+        { name: 'Pizza', icon: '🍕' },
+        { name: 'Pasta', icon: '🍝' },
+        { name: 'Minuman', icon: '🍹' }
+    ];
     let menu = [];
     let cart = [];
-    let userPoints = 0;
-    let notifications = [];
 
-    // DOM ELEMENTS
+    // --- DOM ELEMENTS ---
     const menuContainer = document.getElementById('menu-container');
+    const categoryFilter = document.getElementById('category-filter');
     const cartButton = document.getElementById('cartButton');
     const closeCartModal = document.getElementById('closeCartModal');
     const cartModal = document.getElementById('cartModal');
-    const checkoutModal = document.getElementById('checkoutModal');
-    const closeCheckoutModal = document.getElementById('closeCheckoutModal');
     const cartCount = document.getElementById('cartCount');
-    const userPointsEl = document.getElementById('userPoints');
     const cartItemsEl = document.getElementById('cartItems');
     const cartTotalEl = document.getElementById('cartTotal');
     const checkoutButton = document.getElementById('checkoutButton');
-    const onlineTab = document.getElementById('onlineTab');
-    const offlineTab = document.getElementById('offlineTab');
-    const onlineForm = document.getElementById('onlineForm');
-    const offlineForm = document.getElementById('offlineForm');
-    const confirmOrderButton = document.getElementById('confirmOrderButton');
-    const redeemPointsButton = document.getElementById('redeemPointsButton');
     const toastContainer = document.getElementById('toast-container');
+    // Detail Modal Elements
+    const detailModal = document.getElementById('detailModal');
+    const closeDetailModal = document.getElementById('closeDetailModal');
+    const detailImage = document.getElementById('detailImage');
+    const detailName = document.getElementById('detailName');
+    const detailPrice = document.getElementById('detailPrice');
+    const detailPoints = document.getElementById('detailPoints');
+    const detailDesc = document.getElementById('detailDesc');
+    const detailAddToCart = document.getElementById('detailAddToCart');
 
 
-    // FUNCTIONS
+    // --- FUNCTIONS ---
     function initializeApp() {
+        // Mock data, in real app this comes from an API
         menu = JSON.parse(localStorage.getItem('menuItems')) || [
-            { id: 1, name: 'Nasi Goreng Spesial', price: 25000, image: 'https://placehold.co/600x400/0ea5e9/FFFFFF?text=Nasi+Goreng', points: 25 },
-            { id: 2, name: 'Mie Ayam Juara', price: 20000, image: 'https://placehold.co/600x400/10b981/FFFFFF?text=Mie+Ayam', points: 20 },
-            { id: 3, name: 'Sate Ayam Madura', price: 30000, image: 'https://placehold.co/600x400/f97316/FFFFFF?text=Sate+Ayam', points: 30 },
-            { id: 4, name: 'Es Teh Manis Jumbo', price: 5000, image: 'https://placehold.co/600x400/64748b/FFFFFF?text=Es+Teh', points: 5 },
+            { id: 1, name: 'Buff Burger', price: 35000, image: 'https://assets.stickpng.com/images/580b57fcd9996e24bc43c1a8.png', category: 'Burger', points: 35, desc: 'Burger daging sapi juicy dengan keju leleh, selada, tomat, bawang, dan saus spesial.' },
+            { id: 2, name: 'Chicken Burger', price: 30000, image: 'https://assets.stickpng.com/images/580b57fcd9996e24bc43c1a8.png', category: 'Burger', points: 30, desc: 'Burger daging ayam renyah dengan mayones, selada, dan acar timun.' },
+            { id: 3, name: 'Pizza Pepperoni', price: 85000, image: 'https://www.pngkey.com/png/full/2-23363_pizza-png-free-download-pepperoni-pizza-transparent.png', category: 'Pizza', points: 85, desc: 'Pizza klasik dengan saus tomat, keju mozzarella, dan irisan pepperoni melimpah.' },
+            { id: 4, name: 'Coca Cola', price: 10000, image: 'https://www.freepnglogos.com/uploads/coca-cola-png/coca-cola-bottle-png-images-download-2.png', category: 'Minuman', points: 10, desc: 'Minuman bersoda yang menyegarkan.' }
         ];
         cart = JSON.parse(localStorage.getItem('cart')) || [];
-        userPoints = JSON.parse(localStorage.getItem('userPoints')) || 0;
-        notifications = JSON.parse(localStorage.getItem('notifications')) || [];
         
+        renderCategories();
         renderMenu();
         updateUI();
         
-        setInterval(checkNotifications, 3000);
+        // This part is for communication with admin panel
+        // setInterval(checkNotifications, 3000); 
     }
 
-    function renderMenu() {
+    function renderCategories() {
+        categoryFilter.innerHTML = '';
+        CATEGORIES.forEach((cat, index) => {
+            const isActive = index === 0;
+            const catEl = document.createElement('button');
+            catEl.className = `flex flex-col items-center space-y-2 flex-shrink-0 w-20`;
+            catEl.innerHTML = `
+                <div class="w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-red-600 text-white' : 'bg-white'} text-2xl shadow-sm">${cat.icon}</div>
+                <span class="text-sm font-medium ${isActive ? 'text-red-600' : 'text-slate-600'}">${cat.name}</span>
+            `;
+            categoryFilter.appendChild(catEl);
+        });
+    }
+
+    function renderMenu(category = 'All') {
         menuContainer.innerHTML = '';
-        if (!menu || menu.length === 0) {
-            menuContainer.innerHTML = `<p class="text-slate-500 col-span-full text-center">Menu belum tersedia. Silakan cek kembali nanti.</p>`;
-            return;
-        }
-        menu.forEach(item => {
+        const filteredMenu = category === 'All' ? menu : menu.filter(item => item.category === category);
+
+        filteredMenu.forEach(item => {
             const menuItem = document.createElement('div');
-            menuItem.className = 'fade-in';
+            menuItem.className = 'bg-white p-3 rounded-2xl shadow-md fade-in';
+            menuItem.setAttribute('data-id', item.id);
             menuItem.innerHTML = `
-                <div class="mb-4">
-                    <img src="${item.image}" alt="${item.name}" class="w-full h-48 sm:h-56 object-cover rounded-2xl shadow-lg shadow-slate-900/10">
+                <div class="h-28 flex items-center justify-center mb-2">
+                    <img src="${item.image}" alt="${item.name}" class="max-h-full max-w-full drop-shadow-lg">
                 </div>
-                <div>
-                    <h3 class="text-lg font-bold text-slate-800">${item.name}</h3>
-                    <div class="flex justify-between items-center mt-2">
-                        <div>
-                             <p class="text-slate-800 font-semibold">Rp ${item.price.toLocaleString('id-ID')}</p>
-                             <p class="text-xs text-amber-600 font-medium mt-1">+${item.points} Poin</p>
-                        </div>
-                        <button data-id="${item.id}" class="add-to-cart-btn bg-sky-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-sky-600 transition-colors">
-                            Tambah
-                        </button>
-                    </div>
+                <h3 class="font-semibold text-sm text-slate-800 truncate">${item.name}</h3>
+                <div class="flex justify-between items-center mt-2">
+                    <p class="font-bold text-slate-900">Rp${(item.price/1000)}k</p>
+                    <button data-id="${item.id}" class="add-to-cart-btn bg-red-600 text-white w-8 h-8 rounded-full font-bold text-lg flex items-center justify-center">+</button>
                 </div>
             `;
             menuContainer.appendChild(menuItem);
@@ -207,18 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUI() {
         cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
-        userPointsEl.textContent = `${userPoints} Poin`;
         localStorage.setItem('cart', JSON.stringify(cart));
-        localStorage.setItem('userPoints', JSON.stringify(userPoints));
-        redeemPointsButton.disabled = userPoints < 1000;
-        
         renderCart();
     }
     
     function renderCart() {
         cartItemsEl.innerHTML = '';
         if (cart.length === 0) {
-            cartItemsEl.innerHTML = '<p class="text-slate-500 text-center py-8">Keranjang Anda kosong.</p>';
+            cartItemsEl.innerHTML = '<p class="text-slate-500 text-center py-8">Keranjangmu kosong.</p>';
             cartTotalEl.textContent = 'Rp 0';
             checkoutButton.disabled = true;
             return;
@@ -227,19 +238,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let total = 0;
         cart.forEach(cartItem => {
             const menuItem = menu.find(m => m.id === cartItem.id);
-            const price = cartItem.isFree ? 0 : menuItem.price;
-            total += price * cartItem.quantity;
+            total += menuItem.price * cartItem.quantity;
             const itemEl = document.createElement('div');
-            itemEl.className = 'flex justify-between items-center py-3 border-b border-slate-200';
+            itemEl.className = 'flex justify-between items-center py-3 border-b';
             itemEl.innerHTML = `
-                <div class="flex-grow">
-                    <p class="font-semibold">${menuItem.name} ${cartItem.isFree ? '<span class="text-xs bg-amber-100 text-amber-700 font-medium px-2 py-0.5 rounded-full ml-2">Gratis</span>' : ''}</p>
-                    <p class="text-sm text-slate-500">Rp ${price.toLocaleString('id-ID')} x ${cartItem.quantity}</p>
+                <div class="flex items-center space-x-3">
+                    <img src="${menuItem.image}" class="w-12 h-12 object-contain bg-slate-100 rounded-lg p-1">
+                    <div>
+                        <p class="font-semibold">${menuItem.name}</p>
+                        <p class="text-sm text-slate-500">Rp ${menuItem.price.toLocaleString('id-ID')}</p>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button data-id="${menuItem.id}" class="decrease-qty-btn bg-slate-200 text-slate-700 w-7 h-7 rounded-full font-bold">-</button>
-                    <span class="w-4 text-center">${cartItem.quantity}</span>
-                    <button data-id="${menuItem.id}" class="increase-qty-btn bg-slate-200 text-slate-700 w-7 h-7 rounded-full font-bold">+</button>
+                    <span>${cartItem.quantity}</span>
+                    <button data-id="${menuItem.id}" class="increase-qty-btn bg-red-600 text-white w-7 h-7 rounded-full font-bold">+</button>
                 </div>
             `;
             cartItemsEl.appendChild(itemEl);
@@ -248,9 +261,23 @@ document.addEventListener('DOMContentLoaded', () => {
         cartTotalEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
         checkoutButton.disabled = false;
     }
+    
+    function openDetailModal(itemId) {
+        const item = menu.find(m => m.id === itemId);
+        if (!item) return;
+        
+        detailImage.src = item.image;
+        detailName.textContent = item.name;
+        detailPrice.textContent = `Rp ${item.price.toLocaleString('id-ID')}`;
+        detailPoints.textContent = `+${item.points} Poin`;
+        detailDesc.textContent = item.desc;
+        detailAddToCart.setAttribute('data-id', item.id);
+        
+        detailModal.classList.remove('hidden');
+    }
 
-    function addToCart(itemId) {
-        const existingItem = cart.find(item => item.id === itemId && !item.isFree);
+    function addToCart(itemId, fromModal = false) {
+        const existingItem = cart.find(item => item.id === itemId);
         if (existingItem) {
             existingItem.quantity++;
         } else {
@@ -258,6 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateUI();
         showToast('Berhasil ditambahkan!', 'success');
+        if (fromModal) {
+            detailModal.classList.add('hidden');
+            cartModal.classList.remove('hidden');
+        }
     }
 
     function changeQuantity(itemId, change) {
@@ -271,121 +302,28 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUI();
     }
     
-    function handleCheckout() {
-        let total = 0;
-        cart.forEach(cartItem => {
-            const menuItem = menu.find(m => m.id === cartItem.id);
-            if (!cartItem.isFree) {
-                 total += menuItem.price * cartItem.quantity;
-            }
-        });
-
-        const pointsEarned = Math.floor(total / 1000); 
-        userPoints += pointsEarned;
-        
-        const orderType = onlineForm.style.display !== 'none' ? 'Online' : 'Offline';
-        let customerInfo = { type: orderType };
-        if (orderType === 'Online') {
-            customerInfo.address = document.getElementById('address').value;
-        } else {
-            customerInfo.name = document.getElementById('customerName').value;
-            customerInfo.table = document.getElementById('tableNumber').value;
-        }
-        customerInfo.notes = document.getElementById('notes').value;
-        
-        if ((orderType === 'Online' && !customerInfo.address) || (orderType === 'Offline' && (!customerInfo.name || !customerInfo.table))) {
-            showToast('Harap isi semua data yang diperlukan.', 'error');
-            return;
-        }
-
-        const newOrder = {
-            id: 'order-' + Date.now(),
-            items: cart.map(item => ({...item})), // Create a copy
-            total: total,
-            customerInfo: customerInfo,
-            status: 'Pending',
-            timestamp: new Date().toISOString()
-        };
-
-        const existingOrders = JSON.parse(localStorage.getItem('orders')) || [];
-        existingOrders.push(newOrder);
-        localStorage.setItem('orders', JSON.stringify(existingOrders));
-
-        cart = [];
-        updateUI();
-        
-        checkoutModal.classList.add('hidden');
-        cartModal.classList.add('hidden');
-        
-        const deliveryTime = Math.floor(Math.random() * 20) + 10;
-        const notificationMessage = `Pesanan diterima! Estimasi tiba dalam ${deliveryTime} menit.`;
-        addNotification(notificationMessage, 'self');
-        showToast(notificationMessage, 'success');
-    }
-
-    function handleRedeemPoints() {
-        if (userPoints < 1000) {
-            showToast('Poin Anda tidak cukup (butuh 1000 poin).', 'error');
-            return;
-        }
-        
-        const freeItem = menu.find(item => item.price <= 20000 && item.price > 0);
-        if (!freeItem) {
-            showToast('Tidak ada item yang bisa ditukar saat ini.', 'error');
-            return;
-        }
-        
-        userPoints -= 1000;
-        
-        const existingItem = cart.find(item => item.id === freeItem.id && item.isFree);
-        if (existingItem) {
-            existingItem.quantity++;
-        } else {
-            cart.push({ id: freeItem.id, quantity: 1, isFree: true });
-        }
-        
-        updateUI();
-        showToast(`Anda berhasil menukar poin dengan ${freeItem.name}!`, 'success');
-        cartModal.classList.remove('hidden');
-    }
-    
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
-        const colors = {
-            success: 'bg-emerald-500',
-            error: 'bg-red-500',
-            info: 'bg-sky-500'
-        };
-        toast.className = `p-4 rounded-xl shadow-lg text-white font-semibold ${colors[type]} fade-in-fast`;
+        const colors = { success: 'bg-emerald-500', error: 'bg-red-500', info: 'bg-sky-500' };
+        toast.className = `p-4 rounded-xl shadow-lg text-white font-semibold ${colors[type]} fade-in`;
         toast.textContent = message;
         toastContainer.appendChild(toast);
-        setTimeout(() => {
-            toast.remove();
-        }, 4000);
-    }
-
-    function addNotification(message, from) {
-        const allNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
-        allNotifications.push({ id: 'notif-' + Date.now(), message: message, timestamp: new Date().toISOString(), from: from });
-        localStorage.setItem('notifications', JSON.stringify(allNotifications));
+        setTimeout(() => toast.remove(), 3000);
     }
     
-    function checkNotifications() {
-        const allNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
-        const adminNotifications = allNotifications.filter(n => n.from === 'admin');
-        
-        if (adminNotifications.length > notifications.length) {
-            const newNotif = adminNotifications[adminNotifications.length - 1];
-            showToast(newNotif.message, 'info');
-            notifications.push(newNotif);
-        }
-    }
-    
-    // EVENT LISTENERS
+    // --- EVENT LISTENERS ---
     menuContainer.addEventListener('click', (e) => {
-        if (e.target.closest('.add-to-cart-btn')) {
-            const itemId = parseInt(e.target.closest('.add-to-cart-btn').dataset.id);
+        const addToCartBtn = e.target.closest('.add-to-cart-btn');
+        if (addToCartBtn) {
+            const itemId = parseInt(addToCartBtn.dataset.id);
             addToCart(itemId);
+            return;
+        }
+
+        const card = e.target.closest('.bg-white');
+        if (card && card.dataset.id) {
+            const itemId = parseInt(card.dataset.id);
+            openDetailModal(itemId);
         }
     });
 
@@ -393,40 +331,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = e.target.closest('button');
         if (!button) return;
         const itemId = parseInt(button.dataset.id);
-        if (button.classList.contains('increase-qty-btn')) {
-            changeQuantity(itemId, 1);
-        }
-        if (button.classList.contains('decrease-qty-btn')) {
-            changeQuantity(itemId, -1);
-        }
+        if (button.classList.contains('increase-qty-btn')) changeQuantity(itemId, 1);
+        if (button.classList.contains('decrease-qty-btn')) changeQuantity(itemId, -1);
+    });
+
+    categoryFilter.addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (!button) return;
+        
+        // Update active state
+        document.querySelectorAll('#category-filter button div').forEach(div => div.classList.remove('bg-red-600', 'text-white'));
+        document.querySelectorAll('#category-filter button span').forEach(span => span.classList.remove('text-red-600'));
+        button.querySelector('div').classList.add('bg-red-600', 'text-white');
+        button.querySelector('span').classList.add('text-red-600');
+        
+        const categoryName = button.querySelector('span').textContent;
+        renderMenu(categoryName);
     });
     
     cartButton.addEventListener('click', () => cartModal.classList.remove('hidden'));
     closeCartModal.addEventListener('click', () => cartModal.classList.add('hidden'));
-    checkoutButton.addEventListener('click', () => {
-        cartModal.classList.add('hidden');
-        checkoutModal.classList.remove('hidden');
+
+    closeDetailModal.addEventListener('click', () => detailModal.classList.add('hidden'));
+    detailAddToCart.addEventListener('click', (e) => {
+        const itemId = parseInt(e.target.dataset.id);
+        addToCart(itemId, true);
     });
-    closeCheckoutModal.addEventListener('click', () => checkoutModal.classList.add('hidden'));
-    redeemPointsButton.addEventListener('click', handleRedeemPoints);
-    confirmOrderButton.addEventListener('click', handleCheckout);
-
-    function switchTab(activeTab) {
-        if (activeTab === 'online') {
-            onlineTab.className = 'flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-sky-600 shadow';
-            offlineTab.className = 'flex-1 py-2 text-sm font-semibold rounded-lg text-slate-500';
-            onlineForm.style.display = 'block';
-            offlineForm.style.display = 'none';
-        } else {
-            offlineTab.className = 'flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-sky-600 shadow';
-            onlineTab.className = 'flex-1 py-2 text-sm font-semibold rounded-lg text-slate-500';
-            offlineForm.style.display = 'block';
-            onlineForm.style.display = 'none';
-        }
-    }
-
-    onlineTab.addEventListener('click', () => switchTab('online'));
-    offlineTab.addEventListener('click', () => switchTab('offline'));
 
     initializeApp();
 });
