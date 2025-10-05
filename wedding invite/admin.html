@@ -3,301 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Sistem Pemesanan</title>
+    <title>Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { 
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background-color: #f1f5f9; /* slate-100 */
         }
-        .fade-in { animation: fadeIn 0.4s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .page { display: none; }
+        .page.active { display: block; }
+        .nav-link.active svg { color: #dc2626; /* red-600 */ }
+        .nav-link.active span { color: #dc2626; /* red-600 */ }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body>
+<body class="pb-24">
 
-    <div class="flex h-screen bg-slate-100 text-slate-800">
-        <!-- Sidebar -->
-        <div class="w-20 lg:w-64 bg-slate-900 text-white flex flex-col transition-all duration-300">
-            <div class="px-4 lg:px-6 py-6 flex items-center justify-center lg:justify-start">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-sky-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-                <h2 class="text-2xl font-bold text-white ml-3 hidden lg:block">Admin</h2>
-            </div>
-            <nav class="flex-1 px-2 lg:px-4 py-4 space-y-2">
-                <a href="#" data-target="dashboard" class="nav-link bg-slate-700 flex items-center justify-center lg:justify-start px-2 py-2.5 rounded-lg text-white font-semibold">
-                    <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                    <span class="ml-4 hidden lg:block">Pesanan</span>
-                </a>
-                <a href="#" data-target="add-food" class="nav-link hover:bg-slate-700 flex items-center justify-center lg:justify-start px-2 py-2.5 rounded-lg text-slate-300 hover:text-white transition-colors">
-                    <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span class="ml-4 hidden lg:block">Tambah Menu</span>
-                </a>
-                 <a href="#" data-target="sales-data" class="nav-link hover:bg-slate-700 flex items-center justify-center lg:justify-start px-2 py-2.5 rounded-lg text-slate-300 hover:text-white transition-colors">
-                    <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                    <span class="ml-4 hidden lg:block">Penjualan</span>
-                </a>
-            </nav>
+    <!-- Header -->
+    <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-40">
+        <div class="container mx-auto px-4 py-3">
+            <h1 id="headerTitle" class="text-xl font-bold text-slate-800">Pesanan Masuk</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4">
+        <!-- Page: Orders -->
+        <div id="page-orders" class="page active fade-in">
+            <div id="orders-container" class="space-y-4"></div>
         </div>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-            <!-- Dashboard/Pesanan Masuk -->
-            <div id="dashboard" class="content-section fade-in">
-                <h1 class="text-3xl font-bold text-slate-900 mb-6">Pesanan Masuk</h1>
-                <div id="orders-container" class="space-y-5">
-                    <!-- Orders will be injected here -->
-                </div>
-            </div>
+        <!-- Page: Menu -->
+        <div id="page-menu" class="page fade-in">
+             <div id="menu-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
 
-            <!-- Tambah Makanan -->
-            <div id="add-food" class="content-section hidden fade-in max-w-2xl mx-auto">
-                <h1 class="text-3xl font-bold text-slate-900 mb-6">Tambah Menu Baru</h1>
-                <div class="bg-white p-8 rounded-2xl shadow-lg">
-                    <form id="add-food-form" class="space-y-5">
-                        <div>
-                            <label for="foodName" class="block text-sm font-medium text-slate-700">Nama Makanan</label>
-                            <input type="text" id="foodName" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500" required>
-                        </div>
-                        <div>
-                            <label for="foodPrice" class="block text-sm font-medium text-slate-700">Harga (Rp)</label>
-                            <input type="number" id="foodPrice" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500" required>
-                        </div>
-                        <div>
-                            <label for="foodImage" class="block text-sm font-medium text-slate-700">URL Gambar</label>
-                            <input type="text" id="foodImage" placeholder="https://placehold.co/..." class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500" required>
-                        </div>
-                         <div>
-                            <label for="foodPoints" class="block text-sm font-medium text-slate-700">Poin yang didapat</label>
-                            <input type="number" id="foodPoints" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500" required>
-                        </div>
-                        <button type="submit" class="w-full bg-sky-500 text-white font-bold py-3 rounded-xl hover:bg-sky-600 transition duration-300">Tambah Menu</button>
+        <!-- Page: Customers -->
+        <div id="page-customers" class="page fade-in">
+             <div id="customers-container" class="space-y-3"></div>
+        </div>
+
+        <!-- Page: Settings -->
+        <div id="page-settings" class="page fade-in">
+            <div class="space-y-6">
+                <!-- Promo Banner Settings -->
+                <div class="bg-white p-5 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-4">Pengaturan Banner Promo</h3>
+                    <form id="promo-form" class="space-y-3">
+                        <input type="text" id="promoTitle" placeholder="Judul Promo (misal: Dapatkan Gratis!)" class="w-full rounded-lg border-slate-300">
+                        <input type="text" id="promoSubtitle" placeholder="Subjudul (misal: Minuman dingin...)" class="w-full rounded-lg border-slate-300">
+                        <button type="submit" class="w-full bg-red-600 text-white font-semibold py-2.5 rounded-lg">Simpan Promo</button>
                     </form>
                 </div>
+                 <!-- Category Settings -->
+                <div class="bg-white p-5 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-lg">Kategori Menu</h3>
+                        <button id="addCategoryBtn" class="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full">+ Tambah</button>
+                    </div>
+                    <div id="categories-container" class="space-y-2"></div>
+                </div>
             </div>
-            
-            <!-- Data Penjualan -->
-            <div id="sales-data" class="content-section hidden fade-in">
-                 <h1 class="text-3xl font-bold text-slate-900 mb-6">Data Penjualan</h1>
-                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-medium text-slate-500">Total Pendapatan</h3>
-                        <p id="totalRevenue" class="text-3xl font-bold text-emerald-600 mt-2">Rp 0</p>
-                    </div>
-                     <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-medium text-slate-500">Pesanan Selesai</h3>
-                        <p id="totalOrders" class="text-3xl font-bold text-sky-600 mt-2">0</p>
-                    </div>
-                     <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-medium text-slate-500">Menu Terlaris</h3>
-                        <p id="bestSellingItem" class="text-xl font-bold text-amber-600 mt-2">-</p>
-                    </div>
-                 </div>
+        </div>
+    </main>
+    
+    <!-- Floating Action Button -->
+    <button id="fab" class="fixed bottom-24 right-5 bg-red-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl font-light transform hover:scale-110 transition-transform z-40">
+        +
+    </button>
+
+    <!-- Bottom Navbar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-50">
+        <div class="flex justify-around items-center h-20">
+            <button data-target="page-orders" class="nav-link active flex flex-col items-center justify-center w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span class="text-xs font-medium text-slate-500">Pesanan</span>
+            </button>
+            <button data-target="page-menu" class="nav-link flex flex-col items-center justify-center w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span class="text-xs font-medium text-slate-500">Menu</span>
+            </button>
+            <button data-target="page-customers" class="nav-link flex flex-col items-center justify-center w-full">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span class="text-xs font-medium text-slate-500">Pelanggan</span>
+            </button>
+            <button data-target="page-settings" class="nav-link flex flex-col items-center justify-center w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span class="text-xs font-medium text-slate-500">Pengaturan</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Form Modal -->
+    <div id="form-modal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-end">
+        <div id="modal-content" class="bg-slate-50 w-full rounded-t-2xl slide-up">
+            <div class="p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <h2 id="modal-title" class="font-bold text-lg">Modal Title</h2>
+                    <button id="close-modal-btn" class="text-2xl text-slate-500">&times;</button>
+                </div>
             </div>
-        </main>
+            <div class="p-4 max-h-[70vh] overflow-y-auto">
+                <form id="main-form" class="space-y-4"></form>
+            </div>
+        </div>
     </div>
 
 <script>
+// NOTE: All state management is done via localStorage to simulate a backend.
+// This allows communication between the buyer and admin pages.
+
 document.addEventListener('DOMContentLoaded', () => {
-    // STATE
-    let menu = [];
-    let orders = [];
+    // --- STATE MANAGEMENT ---
+    let state = {
+        menu: [],
+        orders: [],
+        categories: [],
+        customers: [], // Simple customer tracking
+        settings: {
+            promo: { title: 'Dapatkan Gratis!', subtitle: 'Minuman dingin di setiap pesanan burger.' }
+        },
+        activePage: 'page-orders'
+    };
 
-    // DOM ELEMENTS
+    // --- DOM ELEMENTS ---
+    const pages = document.querySelectorAll('.page');
     const navLinks = document.querySelectorAll('.nav-link');
-    const contentSections = document.querySelectorAll('.content-section');
+    const headerTitle = document.getElementById('headerTitle');
+    const fab = document.getElementById('fab');
+    // Containers
     const ordersContainer = document.getElementById('orders-container');
-    const addFoodForm = document.getElementById('add-food-form');
+    const menuContainer = document.getElementById('menu-container');
+    const customersContainer = document.getElementById('customers-container');
+    const categoriesContainer = document.getElementById('categories-container');
+    // Modal
+    const formModal = document.getElementById('form-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const mainForm = document.getElementById('main-form');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    
+    // --- INITIALIZATION ---
+    function loadState() {
+        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [{ id: 1, name: 'Buff Burger', price: 35000, image: 'https://assets.stickpng.com/images/580b57fcd9996e24bc43c1a8.png', category: 'Burger', points: 35, desc: 'Burger daging sapi juicy.' }];
+        state.orders = JSON.parse(localStorage.getItem('orders')) || [];
+        state.categories = JSON.parse(localStorage.getItem('categories')) || [{id: 1, name: 'Burger', icon: '🍔'}, {id: 2, name: 'Pizza', icon: '🍕'}];
+        state.customers = JSON.parse(localStorage.getItem('customers')) || [{id: 'user1', name: 'Budi', points: 1250}];
+        state.settings = JSON.parse(localStorage.getItem('storeSettings')) || state.settings;
+        saveState();
+    }
 
-    function initializeAdmin() {
-        menu = JSON.parse(localStorage.getItem('menuItems')) || [];
-        orders = JSON.parse(localStorage.getItem('orders')) || [];
-        
-        renderOrders();
-        updateSalesData();
-
+    function saveState() {
+        localStorage.setItem('menuItems', JSON.stringify(state.menu));
+        localStorage.setItem('orders', JSON.stringify(state.orders));
+        localStorage.setItem('categories', JSON.stringify(state.categories));
+        localStorage.setItem('customers', JSON.stringify(state.customers));
+        localStorage.setItem('storeSettings', JSON.stringify(state.settings));
+    }
+    
+    function initializeApp() {
+        loadState();
+        renderAll();
+        setupEventListeners();
+        // Periodically check for new orders from the buyer page
         setInterval(() => {
-            const currentOrders = JSON.parse(localStorage.getItem('orders')) || [];
-            if(JSON.stringify(currentOrders) !== JSON.stringify(orders)) {
-                orders = currentOrders;
+            const newOrders = JSON.parse(localStorage.getItem('orders')) || [];
+            if (newOrders.length !== state.orders.length) {
+                state.orders = newOrders;
                 renderOrders();
-                updateSalesData();
             }
         }, 3000);
     }
 
-    function renderOrders() {
-        const latestOrders = JSON.parse(localStorage.getItem('orders')) || [];
-        ordersContainer.innerHTML = '';
-
-        if (latestOrders.length === 0) {
-            ordersContainer.innerHTML = '<div class="text-center bg-white p-8 rounded-2xl shadow-md"><p class="text-slate-500">Belum ada pesanan masuk.</p></div>';
-            return;
-        }
-
-        const sortedOrders = latestOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        sortedOrders.forEach(order => {
-            const statusStyles = {
-                Pending: { border: 'border-amber-400', tagBg: 'bg-amber-100', tagText: 'text-amber-800' },
-                Processing: { border: 'border-sky-500', tagBg: 'bg-sky-100', tagText: 'text-sky-800' },
-                Completed: { border: 'border-emerald-500', tagBg: 'bg-emerald-100', tagText: 'text-emerald-800' }
-            };
-            const currentStatus = statusStyles[order.status] || statusStyles.Pending;
-
-            const orderCard = document.createElement('div');
-            orderCard.className = `bg-white p-5 rounded-2xl shadow-lg border-l-4 ${currentStatus.border}`;
-            
-            let customerDetails = '';
-            if (order.customerInfo.type === 'Online') {
-                customerDetails = `<p><strong class="font-medium text-slate-600">Alamat:</strong> ${order.customerInfo.address}</p>`;
-            } else {
-                customerDetails = `<p><strong class="font-medium text-slate-600">Nama:</strong> ${order.customerInfo.name}</p>
-                                   <p><strong class="font-medium text-slate-600">No. Meja:</strong> ${order.customerInfo.table}</p>`;
-            }
-
-            let itemsList = order.items.map(item => {
-                const menuItem = menu.find(m => m.id === item.id);
-                const isFree = item.isFree ? ' <span class="text-xs text-amber-600">(Gratis)</span>' : '';
-                return menuItem ? `<li class="text-slate-700">${menuItem.name} <span class="font-semibold">x ${item.quantity}</span>${isFree}</li>` : '';
-            }).join('');
-            
-            orderCard.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="font-bold text-lg text-slate-800">Pesanan #${order.id.slice(-6)}</h3>
-                        <p class="text-sm text-slate-500">${new Date(order.timestamp).toLocaleString('id-ID')}</p>
-                    </div>
-                    <span class="px-3 py-1 text-sm font-semibold rounded-full ${currentStatus.tagBg} ${currentStatus.tagText}">
-                        ${order.status}
-                    </span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border-t pt-4">
-                    <div class="space-y-1">
-                        <h4 class="font-semibold text-slate-800 mb-1">Detail Pemesan:</h4>
-                        ${customerDetails}
-                        <p><strong class="font-medium text-slate-600">Catatan:</strong> ${order.customerInfo.notes || '-'}</p>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-slate-800 mb-1">Pesanan:</h4>
-                        <ul class="list-disc list-inside pl-2">${itemsList}</ul>
-                    </div>
-                </div>
-                <div class="mt-4 flex justify-between items-center border-t pt-4">
-                    <p class="font-bold text-lg text-slate-800">Total: Rp ${order.total.toLocaleString('id-ID')}</p>
-                    ${order.status === 'Pending' ? `<button data-id="${order.id}" class="confirm-order-btn bg-sky-500 text-white px-5 py-2 rounded-lg hover:bg-sky-600 font-semibold transition-colors">Konfirmasi</button>` : ''}
-                </div>
-            `;
-            ordersContainer.appendChild(orderCard);
-        });
+    // --- RENDER FUNCTIONS ---
+    function renderAll() {
+        renderOrders();
+        renderMenu();
+        renderCustomers();
+        renderSettings();
     }
 
-    function handleAddFood(e) {
-        e.preventDefault();
-        const newFood = {
-            id: Date.now(),
-            name: document.getElementById('foodName').value,
-            price: parseInt(document.getElementById('foodPrice').value),
-            image: document.getElementById('foodImage').value,
-            points: parseInt(document.getElementById('foodPoints').value),
-        };
+    function renderOrders() {
+        ordersContainer.innerHTML = state.orders.length === 0 
+            ? `<p class="text-center text-slate-500 mt-8">Tidak ada pesanan masuk.</p>`
+            : state.orders.map(order => `
+                <div class="bg-white p-4 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold">Pesanan #${order.id.slice(-5)}</p>
+                            <p class="text-xs text-slate-500">${order.customerInfo.type === 'Online' ? order.customerInfo.address : `${order.customerInfo.name} - Meja ${order.customerInfo.table}`}</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${order.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-sky-100 text-sky-700'}">${order.status}</span>
+                    </div>
+                    <ul class="text-sm list-disc list-inside my-2 pl-2">
+                        ${order.items.map(item => `<li>${item.quantity}x ${state.menu.find(m => m.id === item.id)?.name || 'Item Dihapus'}</li>`).join('')}
+                    </ul>
+                    <div class="border-t pt-2 flex justify-between items-center">
+                        <p class="font-bold text-red-600">Rp ${order.total.toLocaleString('id-ID')}</p>
+                        ${order.status === 'Pending' ? `<button data-id="${order.id}" class="confirm-order-btn bg-red-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg">Konfirmasi</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+    }
 
-        menu.push(newFood);
-        localStorage.setItem('menuItems', JSON.stringify(menu));
-
-        alert('Menu berhasil ditambahkan!');
-        addFoodForm.reset();
+    function renderMenu() {
+        menuContainer.innerHTML = state.menu.map(item => `
+            <div class="bg-white p-3 rounded-xl shadow-sm flex items-start space-x-3">
+                <img src="${item.image}" class="w-20 h-20 object-contain rounded-lg bg-slate-100 p-1">
+                <div class="flex-1">
+                    <p class="font-bold">${item.name}</p>
+                    <p class="text-sm text-red-600 font-semibold">Rp ${item.price.toLocaleString('id-ID')}</p>
+                    <p class="text-xs text-slate-500">${item.category}</p>
+                </div>
+                <div class="flex flex-col space-y-2">
+                    <button data-id="${item.id}" class="edit-menu-btn text-slate-400">✏️</button>
+                    <button data-id="${item.id}" class="delete-menu-btn text-slate-400">🗑️</button>
+                </div>
+            </div>
+        `).join('');
     }
     
-    function handleConfirmOrder(orderId) {
-        const ordersData = JSON.parse(localStorage.getItem('orders')) || [];
-        const orderIndex = ordersData.findIndex(o => o.id === orderId);
-        if (orderIndex !== -1) {
-            ordersData[orderIndex].status = 'Processing';
-            localStorage.setItem('orders', JSON.stringify(ordersData));
-            addNotificationToBuyer(`Pesanan #${orderId.slice(-6)} sedang diproses.`);
-            renderOrders();
-            updateSalesData();
+    function renderCustomers() {
+        customersContainer.innerHTML = state.customers.map(c => `
+             <div class="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center">
+                <div>
+                    <p class="font-semibold">${c.name}</p>
+                    <p class="text-xs text-slate-400">ID: ${c.id}</p>
+                </div>
+                <p class="font-bold text-amber-600">${c.points} Poin</p>
+             </div>
+        `).join('');
+    }
+    
+    function renderSettings() {
+        // Promo form
+        document.getElementById('promoTitle').value = state.settings.promo.title;
+        document.getElementById('promoSubtitle').value = state.settings.promo.subtitle;
+        // Categories
+        categoriesContainer.innerHTML = state.categories.map(cat => `
+            <div class="bg-slate-100 p-2 rounded-lg flex justify-between items-center">
+                <p>${cat.icon} ${cat.name}</p>
+                <button data-id="${cat.id}" class="delete-category-btn text-red-500 text-sm font-semibold">Hapus</button>
+            </div>
+        `).join('');
+    }
+
+    // --- PAGE NAVIGATION ---
+    function switchPage(targetPageId) {
+        state.activePage = targetPageId;
+        const pageTitles = {
+            'page-orders': 'Pesanan Masuk',
+            'page-menu': 'Kelola Menu',
+            'page-customers': 'Data Pelanggan',
+            'page-settings': 'Pengaturan'
+        };
+        headerTitle.textContent = pageTitles[targetPageId];
+
+        pages.forEach(p => p.classList.toggle('active', p.id === targetPageId));
+        navLinks.forEach(l => l.classList.toggle('active', l.dataset.target === targetPageId));
+        
+        // Show/hide FAB based on page
+        fab.style.display = ['page-menu'].includes(targetPageId) ? 'flex' : 'none';
+    }
+
+    // --- MODAL & FORM HANDLING ---
+    function openFormModal(mode, data = {}) {
+        let formHTML = '';
+        switch(mode) {
+            case 'add-menu':
+            case 'edit-menu':
+                modalTitle.textContent = mode === 'add-menu' ? 'Tambah Menu Baru' : 'Edit Menu';
+                formHTML = `
+                    <input type="hidden" name="id" value="${data.id || ''}">
+                    <input type="text" name="name" placeholder="Nama Makanan" class="w-full rounded-lg border-slate-300" value="${data.name || ''}" required>
+                    <input type="number" name="price" placeholder="Harga" class="w-full rounded-lg border-slate-300" value="${data.price || ''}" required>
+                    <input type="text" name="image" placeholder="URL Gambar" class="w-full rounded-lg border-slate-300" value="${data.image || ''}" required>
+                    <select name="category" class="w-full rounded-lg border-slate-300" required>
+                        ${state.categories.map(c => `<option value="${c.name}" ${data.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                    </select>
+                    <textarea name="desc" placeholder="Deskripsi" class="w-full rounded-lg border-slate-300">${data.desc || ''}</textarea>
+                    <button type="submit" class="w-full bg-red-600 text-white font-semibold py-3 rounded-lg">Simpan Menu</button>
+                `;
+                break;
+            case 'add-category':
+                 modalTitle.textContent = 'Tambah Kategori';
+                 formHTML = `
+                    <input type="text" name="name" placeholder="Nama Kategori (misal: Minuman)" class="w-full rounded-lg border-slate-300" required>
+                    <input type="text" name="icon" placeholder="Ikon Emoji (misal: 🍹)" class="w-full rounded-lg border-slate-300" required>
+                    <button type="submit" class="w-full bg-red-600 text-white font-semibold py-3 rounded-lg">Simpan Kategori</button>
+                 `;
+                 break;
         }
+        mainForm.innerHTML = formHTML;
+        mainForm.dataset.mode = mode;
+        formModal.classList.remove('hidden');
     }
 
-    function addNotificationToBuyer(message) {
-        const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
-        notifications.push({
-            id: 'notif-' + Date.now(),
-            message: message,
-            timestamp: new Date().toISOString(),
-            from: 'admin'
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        const mode = e.target.dataset.mode;
+
+        switch(mode) {
+            case 'add-menu':
+                state.menu.push({ ...data, id: Date.now(), price: Number(data.price) });
+                break;
+            case 'edit-menu':
+                const menuIndex = state.menu.findIndex(item => item.id == data.id);
+                if (menuIndex > -1) state.menu[menuIndex] = { ...state.menu[menuIndex], ...data, price: Number(data.price) };
+                break;
+            case 'add-category':
+                state.categories.push({ ...data, id: Date.now() });
+                break;
+        }
+        
+        saveState();
+        renderAll();
+        formModal.classList.add('hidden');
+    }
+
+    // --- EVENT LISTENERS SETUP ---
+    function setupEventListeners() {
+        navLinks.forEach(link => link.addEventListener('click', () => switchPage(link.dataset.target)));
+        fab.addEventListener('click', () => {
+            if (state.activePage === 'page-menu') openFormModal('add-menu');
         });
-        localStorage.setItem('notifications', JSON.stringify(notifications));
-    }
-
-    function updateSalesData() {
-        const allOrders = JSON.parse(localStorage.getItem('orders')) || [];
-        const completedOrders = allOrders.filter(o => o.status === 'Processing' || o.status === 'Completed');
         
-        const totalRevenue = completedOrders.reduce((sum, order) => sum + order.total, 0);
-        document.getElementById('totalRevenue').textContent = `Rp ${totalRevenue.toLocaleString('id-ID')}`;
-        document.getElementById('totalOrders').textContent = completedOrders.length;
-        
-        if (completedOrders.length > 0) {
-            const itemCounts = {};
-            completedOrders.forEach(order => {
-                order.items.forEach(item => {
-                    if(!item.isFree) {
-                        itemCounts[item.id] = (itemCounts[item.id] || 0) + item.quantity;
-                    }
-                });
-            });
+        // Modal events
+        closeModalBtn.addEventListener('click', () => formModal.classList.add('hidden'));
+        mainForm.addEventListener('submit', handleFormSubmit);
 
-            if (Object.keys(itemCounts).length > 0) {
-                const bestSellingId = Object.keys(itemCounts).reduce((a, b) => itemCounts[a] > itemCounts[b] ? a : b);
-                const allMenuItems = JSON.parse(localStorage.getItem('menuItems')) || [];
-                const bestSellingItem = allMenuItems.find(m => m.id == bestSellingId);
-                document.getElementById('bestSellingItem').textContent = bestSellingItem ? bestSellingItem.name : 'N/A';
-            } else {
-                 document.getElementById('bestSellingItem').textContent = '-';
+        // Dynamic event listeners for generated content
+        document.body.addEventListener('click', e => {
+            if (e.target.matches('.confirm-order-btn')) {
+                const orderId = e.target.dataset.id;
+                const order = state.orders.find(o => o.id === orderId);
+                if(order) {
+                    order.status = 'Processing';
+                    saveState();
+                    renderOrders();
+                }
             }
-        } else {
-            document.getElementById('bestSellingItem').textContent = '-';
-        }
+            if (e.target.matches('.edit-menu-btn')) {
+                const item = state.menu.find(m => m.id == e.target.dataset.id);
+                openFormModal('edit-menu', item);
+            }
+            if (e.target.matches('.delete-menu-btn')) {
+                if (confirm('Yakin ingin menghapus menu ini?')) {
+                    state.menu = state.menu.filter(m => m.id != e.target.dataset.id);
+                    saveState();
+                    renderMenu();
+                }
+            }
+            if (e.target.matches('.delete-category-btn')) {
+                 if (confirm('Yakin ingin menghapus kategori ini?')) {
+                    state.categories = state.categories.filter(c => c.id != e.target.dataset.id);
+                    saveState();
+                    renderSettings();
+                }
+            }
+             if (e.target.matches('#addCategoryBtn')) {
+                openFormModal('add-category');
+            }
+        });
+
+        // Settings form
+        document.getElementById('promo-form').addEventListener('submit', e => {
+            e.preventDefault();
+            state.settings.promo.title = document.getElementById('promoTitle').value;
+            state.settings.promo.subtitle = document.getElementById('promoSubtitle').value;
+            saveState();
+            alert('Info promo berhasil disimpan!');
+        });
     }
 
-    // EVENT LISTENERS
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = link.dataset.target;
-
-            navLinks.forEach(l => {
-                l.classList.remove('bg-slate-700', 'text-white');
-                l.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-700');
-            });
-            link.classList.add('bg-slate-700', 'text-white');
-            link.classList.remove('text-slate-300');
-
-            contentSections.forEach(section => {
-                section.id === targetId ? section.classList.remove('hidden') : section.classList.add('hidden');
-            });
-            
-            if(targetId === 'dashboard') renderOrders();
-            if(targetId === 'sales-data') updateSalesData();
-        });
-    });
-
-    addFoodForm.addEventListener('submit', handleAddFood);
-
-    ordersContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('confirm-order-btn')) {
-            handleConfirmOrder(e.target.dataset.id);
-        }
-    });
-
-    initializeAdmin();
+    // --- START THE APP ---
+    initializeApp();
 });
 </script>
 </body>
