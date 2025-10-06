@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesan Makanan v2</title>
+    <title>Pesan Makanan (Offline)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,6 +32,7 @@
         }
         .toast.success { border-left: 4px solid #10b981; } /* emerald-500 */
         .toast.error { border-left: 4px solid #ef4444; } /* red-500 */
+        .toast.info { border-left: 4px solid #3b82f6; } /* blue-500 */
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
@@ -42,23 +43,9 @@
             border-color: #dc2626; /* red-600 */
             background-color: #fee2e2; /* red-100 */
         }
-        .skeleton {
-            background-color: #e5e7eb;
-            border-radius: 0.5rem;
-            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            50% { opacity: .5; }
-        }
     </style>
 </head>
 <body class="text-slate-800">
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[110] flex flex-col items-center justify-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600"></div>
-        <p class="mt-4 text-lg font-semibold text-slate-700">Memuat Data...</p>
-    </div>
 
     <!-- Main Content -->
     <main class="container mx-auto px-5 pt-6 pb-32">
@@ -173,7 +160,6 @@
             <div class="bg-white rounded-t-3xl shadow-xl w-full slide-up">
                  <div class="p-5 border-b flex justify-between items-center"><h3 class="text-xl font-semibold">Detail Pengiriman</h3><button class="close-modal-btn text-3xl">&times;</button></div>
                  <div id="location-check-container" class="p-5 space-y-3">
-                    <!-- Location checking UI will be injected here -->
                 </div>
             </div>
         </div>
@@ -233,23 +219,15 @@
     </div>
     <div id="toast-container" class="toast-container space-y-2"></div>
     
-<script type="module">
-    // --- Firebase SDK ---
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, writeBatch, query, where, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-    // --- FIREBASE & APP CONFIG ---
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'food-app-default';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-
+    // --- APP CONFIG ---
     const RESTAURANT_LOCATION = { lat: -6.1753924, lng: 106.8271528 }; // Monas, Jakarta
     const MAX_DELIVERY_DISTANCE_KM = 5;
     const MIN_ONLINE_ORDER_RP = 50000;
     const DELIVERY_FEE_RP = 8000;
 
-    let app, db, auth, userId, unsubscribeCart;
-    
     // --- STATE MANAGEMENT ---
     let state = {
         menu: [], 
@@ -260,9 +238,8 @@
         orderData: {} 
     };
     
-    // --- DOM ELEMENTS (Cached) ---
+    // --- DOM ELEMENTS ---
     const dom = {
-        loadingOverlay: document.getElementById('loading-overlay'),
         menuContainer: document.getElementById('menu-container'),
         categoryFilter: document.getElementById('category-filter'),
         searchInput: document.getElementById('search-input'),
@@ -288,67 +265,68 @@
         }
     };
 
-    // --- INITIALIZATION ---
-    async function initializeApp() {
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    await loadInitialData();
-                    setupEventListeners();
-                    setInterval(checkOrderStatus, 30000); // Check every 30 seconds
-                } else {
-                    // Automatically sign in if no user
-                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                }
-            });
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            dom.loadingOverlay.innerHTML = '<p class="text-red-500">Gagal terhubung ke server.</p>';
+    // --- DATA HANDLING (localStorage) ---
+    function setupInitialData() {
+        // Cek jika data sudah ada, jika tidak, buat data default
+        if (!localStorage.getItem('menuItems')) {
+            const defaultMenu = [
+                { id: "menu1", name: "Cheeseburger Deluxe", price: 55000, category: "Burger", image: "https://freepngimg.com/thumb/burger/5-2-burger-png-thumb.png", rating: "4.8", description: "Burger daging sapi premium dengan keju cheddar leleh, selada segar, tomat, dan saus spesial." },
+                { id: "menu2", name: "Pizza Pepperoni", price: 85000, category: "Pizza", image: "https://www.pngall.com/wp-content/uploads/4/Pepperoni-Pizza.png", rating: "4.7", description: "Pizza klasik dengan saus tomat, keju mozzarella, dan irisan pepperoni yang melimpah." },
+                { id: "menu3", name: "Kentang Goreng", price: 20000, category: "Snack", image: "https://www.freepnglogos.com/uploads/fries-png/fries-png-images-and-clip-art-1.png", rating: "4.5", description: "Kentang goreng renyah yang digoreng sempurna dan ditaburi sedikit garam." },
+                { id: "menu4", name: "Cola Dingin", price: 15000, category: "Minuman", image: "https://www.pngplay.com/wp-content/uploads/13/Coca-Cola-PNG-Images-HD.png", rating: "4.9", description: "Minuman bersoda yang menyegarkan disajikan dingin dengan es batu." },
+            ];
+            const defaultCategories = [
+                { id: "cat1", name: "Burger", icon: "🍔" }, { id: "cat2", name: "Pizza", icon: "🍕" },
+                { id: "cat3", name: "Minuman", icon: "🥤" }, { id: "cat4", name: "Snack", icon: "🍟" }
+            ];
+            const defaultSettings = { promo: { title: "Diskon Akhir Pekan!", subtitle: "Gratis Es Teh untuk setiap pembelian." } };
+
+            localStorage.setItem('menuItems', JSON.stringify(defaultMenu));
+            localStorage.setItem('categories', JSON.stringify(defaultCategories));
+            localStorage.setItem('storeSettings', JSON.stringify(defaultSettings));
+            localStorage.setItem('orders', JSON.stringify([]));
+            localStorage.setItem('notifications', JSON.stringify([]));
         }
     }
-    
-    async function loadInitialData() {
-        renderMenuSkeletons();
-        await setupInitialFirestoreData();
 
-        const settingsDoc = await getDoc(doc(db, `/artifacts/${appId}/public/data/settings/main`));
-        if (settingsDoc.exists()) state.settings = settingsDoc.data();
+    function loadState() {
+        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
+        state.categories = JSON.parse(localStorage.getItem('categories')) || [];
+        state.settings = JSON.parse(localStorage.getItem('storeSettings')) || {};
+        state.currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-        const categoriesSnapshot = await getDocs(collection(db, `/artifacts/${appId}/public/data/categories`));
-        state.categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        const menuSnapshot = await getDocs(collection(db, `/artifacts/${appId}/public/data/menu`));
-        state.menu = menuSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        const userDocRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/info`);
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists()) {
-            state.currentUser = { name: 'Budi', points: 150 };
-            await setDoc(userDocRef, state.currentUser);
-        } else {
-            state.currentUser = userDoc.data();
+        if (!state.currentUser) {
+            state.currentUser = { id: `user_${Date.now()}`, name: 'Budi', points: 150 };
+            localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
         }
         
-        attachCartListener();
-        renderAllStatic();
-        dom.loadingOverlay.style.display = 'none';
+        state.cart = JSON.parse(localStorage.getItem(`cart_${state.currentUser.id}`)) || [];
     }
 
+    function saveCart() {
+        localStorage.setItem(`cart_${state.currentUser.id}`, JSON.stringify(state.cart));
+    }
+
+    function saveUser() {
+        localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+    }
+
+    // --- INITIALIZATION ---
+    function initializeApp() {
+        setupInitialData();
+        loadState();
+        renderAll();
+        setupEventListeners();
+        setInterval(checkNotifications, 4000); // Cek notifikasi dari admin
+    }
+    
     // --- RENDER FUNCTIONS ---
-    function renderAllStatic() {
+    function renderAll() {
         renderUserInfo();
         renderPromoBanner();
         renderCategories();
         renderMenu();
+        updateCartUI();
     }
     
     function renderUserInfo() {
@@ -370,6 +348,8 @@
     }
 
     function renderMenu(category = 'All', searchTerm = '') {
+        // Selalu ambil data terbaru dari localStorage jika ada perubahan dari admin
+        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
         let filteredMenu = state.menu.filter(item => 
             (category === 'All' || item.category === category) && 
             item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -391,31 +371,10 @@
             </div>`).join('');
     }
     
-    function renderMenuSkeletons() {
-        dom.menuContainer.innerHTML = Array(6).fill('').map(() => `
-            <div class="bg-white p-3 rounded-2xl shadow-md">
-                <div class="skeleton h-28 mb-2"></div>
-                <div class="skeleton h-4 w-3/4 mb-2"></div>
-                <div class="flex justify-between items-center">
-                    <div class="skeleton h-6 w-1/4"></div>
-                    <div class="skeleton h-8 w-8 rounded-full"></div>
-                </div>
-            </div>`).join('');
-    }
-
     // --- CART LOGIC ---
-    function attachCartListener() {
-        if (unsubscribeCart) unsubscribeCart(); // Detach old listener
-        const cartRef = collection(db, `/artifacts/${appId}/users/${userId}/cart`);
-        unsubscribeCart = onSnapshot(cartRef, (snapshot) => {
-            state.cart = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            updateCartUI();
-        });
-    }
-
     function getCartTotal() {
         return state.cart.reduce((sum, item) => {
-            const menuItem = state.menu.find(m => m.id === item.menuItemId);
+            const menuItem = state.menu.find(m => m.id === item.id);
             return sum + (menuItem?.price || 0) * item.quantity;
         }, 0);
     }
@@ -426,6 +385,7 @@
         if (!document.getElementById('cartModal').classList.contains('hidden')) {
              renderCartItems();
         }
+        saveCart();
     }
 
     function renderCartItems() {
@@ -437,7 +397,7 @@
             return;
         }
         dom.cartItems.innerHTML = state.cart.map(cartItem => {
-            const menuItem = state.menu.find(m => m.id === cartItem.menuItemId);
+            const menuItem = state.menu.find(m => m.id === cartItem.id);
             if (!menuItem) return '';
             return `<div class="flex justify-between items-center py-3 border-b">
                 <div class="flex items-center space-x-3">
@@ -458,32 +418,26 @@
         dom.checkoutButton.disabled = false;
     }
 
-    async function addToCart(menuItemId, quantity = 1) {
-        const cartRef = collection(db, `/artifacts/${appId}/users/${userId}/cart`);
-        const q = query(cartRef, where("menuItemId", "==", menuItemId));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            const docRef = querySnapshot.docs[0].ref;
-            const currentQuantity = querySnapshot.docs[0].data().quantity;
-            await updateDoc(docRef, { quantity: currentQuantity + quantity });
+    function addToCart(itemId) {
+        const existingItem = state.cart.find(item => item.id === itemId);
+        if (existingItem) {
+            existingItem.quantity++;
         } else {
-            await addDoc(cartRef, { menuItemId, quantity });
+            state.cart.push({ id: itemId, quantity: 1 });
         }
+        updateCartUI();
         showToast('Berhasil ditambahkan!', 'success');
     }
 
-    async function changeQuantity(cartItemId, change) {
-        const docRef = doc(db, `/artifacts/${appId}/users/${userId}/cart/${cartItemId}`);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const newQuantity = docSnap.data().quantity + change;
-            if (newQuantity > 0) {
-                await updateDoc(docRef, { quantity: newQuantity });
-            } else {
-                await deleteDoc(docRef);
+    function changeQuantity(itemId, change) {
+        const itemIndex = state.cart.findIndex(item => item.id === itemId);
+        if (itemIndex > -1) {
+            state.cart[itemIndex].quantity += change;
+            if (state.cart[itemIndex].quantity <= 0) {
+                state.cart.splice(itemIndex, 1);
             }
         }
+        updateCartUI();
     }
 
     // --- UI/MODAL LOGIC ---
@@ -500,7 +454,6 @@
     function showProductDetail(menuItemId) {
         const item = state.menu.find(m => m.id === menuItemId);
         if (!item) return;
-
         dom.detailModal.image.src = item.image;
         dom.detailModal.name.textContent = item.name;
         dom.detailModal.rating.textContent = item.rating;
@@ -519,9 +472,9 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // --- CHECKOUT & PAYMENT FLOW ---
+    // --- CHECKOUT FLOW ---
+    // (Fungsi-fungsi checkout: startCheckout, handleCheckoutTypeSelect, handleOnlineOrder, renderPaymentModal tidak berubah signifikan)
     function startCheckout() { openModal('checkoutTypeModal'); }
-
     function handleCheckoutTypeSelect(type) {
         const total = getCartTotal();
         if (type === 'Online' && total < MIN_ONLINE_ORDER_RP) {
@@ -536,7 +489,6 @@
             handleOnlineOrder();
         }
     }
-
     function handleOnlineOrder() {
         const container = document.getElementById('location-check-container');
         container.innerHTML = `<div class="text-center p-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div><p class="mt-4 font-semibold">Mengecek lokasi Anda...</p></div>`;
@@ -558,7 +510,6 @@
             }
         );
     }
-    
     function renderPaymentModal() {
         const subtotal = getCartTotal();
         const deliveryFee = state.orderData.type === 'Online' ? DELIVERY_FEE_RP : 0;
@@ -566,46 +517,38 @@
         state.orderData.total = total;
         state.orderData.subtotal = subtotal;
         state.orderData.deliveryFee = deliveryFee;
-
         document.getElementById('payment-summary-items').innerHTML = state.cart.map(item => {
-            const menuItem = state.menu.find(m => m.id === item.menuItemId);
+            const menuItem = state.menu.find(m => m.id === item.id);
             return `<div class="flex justify-between"><span class="text-slate-600">${item.quantity}x ${menuItem.name}</span><span>Rp ${(menuItem.price * item.quantity).toLocaleString('id-ID')}</span></div>`;
         }).join('');
-        
         document.getElementById('payment-subtotal').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
         document.getElementById('payment-delivery-fee').textContent = `Rp ${deliveryFee.toLocaleString('id-ID')}`;
         document.getElementById('payment-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
         document.getElementById('final-pay-button').disabled = true;
         document.querySelectorAll('.payment-option').forEach(btn => btn.classList.remove('selected'));
-        
         openModal('paymentModal');
     }
 
-    async function processFinalOrder() {
+    function processFinalOrder() {
         const pointsEarned = Math.floor(state.orderData.total / 1000);
         
-        // Create order document
-        const orderDataToSave = {
-            userId: userId,
-            timestamp: new Date(),
+        const allOrders = JSON.parse(localStorage.getItem('orders')) || [];
+        const newOrder = {
+            id: `order_${Date.now()}`,
+            userId: state.currentUser.id,
+            timestamp: new Date().toISOString(),
             status: 'Pending',
             items: state.cart,
             details: state.orderData
         };
-        await addDoc(collection(db, `/artifacts/${appId}/public/data/orders`), orderDataToSave);
+        allOrders.push(newOrder);
+        localStorage.setItem('orders', JSON.stringify(allOrders));
 
-        // Clear user's cart using a batch write
-        const cartCollectionRef = collection(db, `/artifacts/${appId}/users/${userId}/cart`);
-        const cartSnapshot = await getDocs(cartCollectionRef);
-        const batch = writeBatch(db);
-        cartSnapshot.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-
-        // Update user points
-        const userRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/info`);
-        const newPoints = state.currentUser.points + pointsEarned;
-        await updateDoc(userRef, { points: newPoints });
-        state.currentUser.points = newPoints;
+        state.currentUser.points += pointsEarned;
+        saveUser();
+        
+        state.cart = [];
+        updateCartUI(); 
         renderUserInfo();
         
         const successMsg = state.orderData.type === 'Online' 
@@ -625,26 +568,17 @@
         return R * c;
     }
 
-    async function checkOrderStatus() {
-        const ordersRef = collection(db, `/artifacts/${appId}/public/data/orders`);
-        const q = query(ordersRef, where("userId", "==", userId));
-        const snapshot = await getDocs(q);
-        
-        snapshot.forEach(orderDoc => {
-            const order = orderDoc.data();
-            const now = new Date();
-            const orderTime = order.timestamp.toDate();
-            const minutesPassed = (now - orderTime) / 60000;
-            let newStatus = order.status;
+    function checkNotifications() {
+        const notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+        const userNotifications = notifications.filter(n => n.userId === state.currentUser.id);
 
-            if (order.status === 'Pending' && minutesPassed > 0.3) newStatus = 'Preparing'; // > 20 detik
-            if (order.status === 'Preparing' && minutesPassed > 1) newStatus = 'Ready'; // > 1 menit
+        if (userNotifications.length > 0) {
+            userNotifications.forEach(n => showToast(n.message, 'info'));
             
-            if (newStatus !== order.status) {
-                updateDoc(doc(db, `/artifacts/${appId}/public/data/orders`, orderDoc.id), { status: newStatus });
-                showToast(`Pesanan Anda sekarang: ${newStatus}!`);
-            }
-        });
+            // Hapus notifikasi yang sudah ditampilkan
+            const remainingNotifications = notifications.filter(n => n.userId !== state.currentUser.id);
+            localStorage.setItem('notifications', JSON.stringify(remainingNotifications));
+        }
     }
 
     // --- EVENT LISTENERS ---
@@ -663,7 +597,7 @@
         });
 
         dom.categoryFilter.addEventListener('click', e => {
-            const categoryBtn = e.target.closest('.category-btn');
+             const categoryBtn = e.target.closest('.category-btn');
             if(categoryBtn) {
                 document.querySelectorAll('.category-btn').forEach(btn => {
                     btn.children[0].classList.replace('bg-red-600', 'bg-white');
@@ -726,44 +660,10 @@
         });
     }
 
-    // --- One-time Firestore Data Setup ---
-    async function setupInitialFirestoreData() {
-        const setupRef = doc(db, `/artifacts/${appId}/public/data/settings/setup`);
-        const setupDoc = await getDoc(setupRef);
-        if (setupDoc.exists()) return; // Already setup
-
-        const batch = writeBatch(db);
-
-        // Settings
-        const settingsData = { promo: { title: "Diskon Akhir Pekan!", subtitle: "Gratis Es Teh untuk setiap pembelian." } };
-        batch.set(doc(db, `/artifacts/${appId}/public/data/settings/main`), settingsData);
-
-        // Categories
-        const categoriesData = [
-            { name: "Burger", icon: "🍔" }, { name: "Pizza", icon: "🍕" },
-            { name: "Minuman", icon: "🥤" }, { name: "Snack", icon: "🍟" }
-        ];
-        categoriesData.forEach(cat => batch.set(doc(collection(db, `/artifacts/${appId}/public/data/categories`)), cat));
-
-        // Menu
-        const menuData = [
-            { name: "Cheeseburger Deluxe", price: 55000, category: "Burger", image: "https://freepngimg.com/thumb/burger/5-2-burger-png-thumb.png", rating: "4.8", description: "Burger daging sapi premium dengan keju cheddar leleh, selada segar, tomat, dan saus spesial." },
-            { name: "Pizza Pepperoni", price: 85000, category: "Pizza", image: "https://www.pngall.com/wp-content/uploads/4/Pepperoni-Pizza.png", rating: "4.7", description: "Pizza klasik dengan saus tomat, keju mozzarella, dan irisan pepperoni yang melimpah." },
-            { name: "Kentang Goreng", price: 20000, category: "Snack", image: "https://www.freepnglogos.com/uploads/fries-png/fries-png-images-and-clip-art-1.png", rating: "4.5", description: "Kentang goreng renyah yang digoreng sempurna dan ditaburi sedikit garam." },
-            { name: "Cola Dingin", price: 15000, category: "Minuman", image: "https://www.pngplay.com/wp-content/uploads/13/Coca-Cola-PNG-Images-HD.png", rating: "4.9", description: "Minuman bersoda yang menyegarkan disajikan dingin dengan es batu." },
-            { name: "Beef Burger", price: 50000, category: "Burger", image: "https://purepng.com/public/uploads/large/purepng.com-burgerburgerfast-foodhammeat-481521758535zhb8c.png", rating: "4.6", description: "Burger daging sapi panggang dengan roti bun lembut, sayuran segar dan saus pilihan." },
-            { name: "Pizza Margherita", price: 75000, category: "Pizza", image: "https://www.pngkey.com/png/full/2-23548_classic-margherita-pizza-png.png", rating: "4.8", description: "Pizza otentik Italia dengan saus tomat, keju mozzarella, dan daun basil segar." },
-        ];
-        menuData.forEach(item => batch.set(doc(collection(db, `/artifacts/${appId}/public/data/menu`)), item));
-
-        batch.set(setupRef, { done: true, timestamp: new Date() });
-        await batch.commit();
-        console.log("Firestore initial data setup complete.");
-    }
-
     // --- Start The App ---
     initializeApp();
-
+});
 </script>
 </body>
 </html>
+

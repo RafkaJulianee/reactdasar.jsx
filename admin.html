@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel v2</title>
+    <title>Admin Panel (Offline)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,56 +13,29 @@
             font-family: 'Poppins', sans-serif;
             background-color: #f1f5f9; /* slate-100 */
         }
-        /* Page Navigation Logic */
         .page { display: none; }
         .page.active { display: block; }
-
-        /* Active Nav Link Styling */
         .nav-link.active svg,
         .nav-link.active span {
             color: #dc2626; /* red-600 */
         }
-        
-        /* Animations */
         .fade-in { animation: fadeIn 0.3s ease-out; }
         .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        /* Toast Notifications */
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; }
         .toast {
-            background-color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
+            background-color: white; padding: 12px 20px; border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; align-items: center;
             animation: slideInRight 0.3s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
         }
         .toast.success { border-left: 4px solid #10b981; }
         .toast.error { border-left: 4px solid #ef4444; }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-
-        /* Skeleton Loader */
-        .skeleton {
-            background-color: #e2e8f0;
-            border-radius: 0.5rem;
-            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            50% { opacity: .6; }
-        }
     </style>
 </head>
 <body class="pb-24">
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[110] flex flex-col items-center justify-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600"></div>
-        <p class="mt-4 text-lg font-semibold text-slate-700">Menyambungkan...</p>
-    </div>
 
     <!-- Header -->
     <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-40">
@@ -77,21 +50,17 @@
         <div id="page-orders" class="page active fade-in">
             <div id="orders-container" class="space-y-4"></div>
         </div>
-
         <!-- Page: Menu Management -->
         <div id="page-menu" class="page fade-in">
              <div id="menu-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
-
         <!-- Page: Customers -->
         <div id="page-customers" class="page fade-in">
              <div id="customers-container" class="space-y-3"></div>
         </div>
-
         <!-- Page: Settings -->
         <div id="page-settings" class="page fade-in">
             <div class="space-y-6">
-                <!-- Promo Banner Settings -->
                 <div class="bg-white p-5 rounded-xl shadow-sm">
                     <h3 class="font-bold text-lg mb-4">Pengaturan Banner Promo</h3>
                     <form id="promo-form" class="space-y-3">
@@ -100,7 +69,6 @@
                         <button type="submit" class="w-full bg-red-600 text-white font-semibold py-2.5 rounded-lg hover:bg-red-700 transition">Simpan Promo</button>
                     </form>
                 </div>
-                 <!-- Category Settings -->
                 <div class="bg-white p-5 rounded-xl shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-lg">Kategori Menu</h3>
@@ -155,18 +123,8 @@
 
     <div id="toast-container" class="toast-container space-y-2"></div>
 
-<script type="module">
-    // --- Firebase SDK ---
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, writeBatch, query, where, addDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // --- FIREBASE & APP CONFIG ---
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'food-app-default';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-
-    let app, db, auth;
-    
+<script>
+document.addEventListener('DOMContentLoaded', () => {
     // --- STATE MANAGEMENT ---
     let state = {
         menu: [], orders: [], categories: [], customers: [],
@@ -176,7 +134,6 @@
 
     // --- DOM ELEMENTS ---
     const dom = {
-        loadingOverlay: document.getElementById('loading-overlay'),
         pages: document.querySelectorAll('.page'),
         navLinks: document.querySelectorAll('.nav-link'),
         headerTitle: document.getElementById('headerTitle'),
@@ -189,125 +146,62 @@
         modalTitle: document.getElementById('modal-title'),
         mainForm: document.getElementById('main-form'),
         closeModalBtn: document.getElementById('close-modal-btn'),
-        promoForm: {
-            form: document.getElementById('promo-form'),
-            title: document.getElementById('promoTitle'),
-            subtitle: document.getElementById('promoSubtitle'),
-        }
     };
     
-    // --- INITIALIZATION ---
-    async function initializeAdminPanel() {
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    attachAllListeners();
-                    setupEventListeners();
-                } else {
-                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                }
-            });
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            dom.loadingOverlay.innerHTML = '<p class="text-red-500">Gagal terhubung ke server.</p>';
-        }
+    // --- DATA HANDLING (localStorage) ---
+    function loadState() {
+        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
+        state.orders = JSON.parse(localStorage.getItem('orders')) || [];
+        state.categories = JSON.parse(localStorage.getItem('categories')) || [];
+        state.settings = JSON.parse(localStorage.getItem('storeSettings')) || { promo: { title: '', subtitle: '' }};
+        deriveCustomersFromOrders();
+    }
+
+    function saveState() {
+        localStorage.setItem('menuItems', JSON.stringify(state.menu));
+        localStorage.setItem('orders', JSON.stringify(state.orders));
+        localStorage.setItem('categories', JSON.stringify(state.categories));
+        localStorage.setItem('storeSettings', JSON.stringify(state.settings));
     }
     
-    function attachAllListeners() {
-        renderSkeletons();
-        let loaded = { orders: false, menu: false, customers: false, settings: false, categories: false };
-        const checkAllLoaded = () => {
-            if (Object.values(loaded).every(Boolean)) {
-                dom.loadingOverlay.style.display = 'none';
+    // --- INITIALIZATION ---
+    function initializeApp() {
+        loadState();
+        renderAll();
+        setupEventListeners();
+        // Periodically check for new orders from the customer app
+        setInterval(() => {
+            const newOrdersRaw = localStorage.getItem('orders');
+            if (newOrdersRaw && JSON.stringify(state.orders) !== newOrdersRaw) {
+                console.log("Pesanan baru terdeteksi!");
+                loadState();
+                if(state.activePage === 'page-orders') renderOrders();
+                if(state.activePage === 'page-customers') renderCustomers();
             }
-        };
-
-        // Orders Listener & Customer Derivation
-        const ordersRef = collection(db, `/artifacts/${appId}/public/data/orders`);
-        onSnapshot(query(ordersRef, orderBy('timestamp', 'desc')), async (snapshot) => {
-            state.orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if (state.activePage === 'page-orders') renderOrders();
-            loaded.orders = true;
-
-            // Derive customer list from orders to avoid permission errors
-            const userIds = [...new Set(state.orders.map(order => order.userId).filter(Boolean))];
-            if (userIds.length > 0) {
-                const customerPromises = userIds.map(uid => getDoc(doc(db, `/artifacts/${appId}/users/${uid}/profile/info`)));
-                const customerDocsSnaps = await Promise.all(customerPromises);
-                state.customers = customerDocsSnaps
-                    .map((docSnap, index) => {
-                        if (docSnap.exists()) {
-                            return { id: userIds[index], ...docSnap.data() };
-                        }
-                        return null;
-                    })
-                    .filter(Boolean);
-            } else {
-                state.customers = [];
-            }
-            if (state.activePage === 'page-customers') renderCustomers();
-            loaded.customers = true;
-            checkAllLoaded();
-        });
-
-        // Menu Listener
-        const menuRef = collection(db, `/artifacts/${appId}/public/data/menu`);
-        onSnapshot(menuRef, (snapshot) => {
-            state.menu = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if (state.activePage === 'page-menu') renderMenu();
-            if (state.activePage === 'page-orders') renderOrders();
-            loaded.menu = true; checkAllLoaded();
-        });
-
-        // Settings Listener
-        const settingsRef = doc(db, `/artifacts/${appId}/public/data/settings/main`);
-        onSnapshot(settingsRef, (doc) => {
-            state.settings = doc.data() || { promo: { title: '', subtitle: '' } };
-            if (state.activePage === 'page-settings') renderSettings();
-            loaded.settings = true; checkAllLoaded();
-        });
-
-        // Categories Listener
-        const categoriesRef = collection(db, `/artifacts/${appId}/public/data/categories`);
-        onSnapshot(categoriesRef, (snapshot) => {
-            state.categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if (state.activePage === 'page-settings') renderSettings();
-            loaded.categories = true; checkAllLoaded();
-        });
+        }, 2000); // Check every 2 seconds
     }
 
     // --- RENDER FUNCTIONS ---
-    function renderSkeletons() {
-        const skeletonCard = (heightClass = 'h-32') => `<div class="skeleton ${heightClass} w-full"></div>`;
-        dom.ordersContainer.innerHTML = Array(4).fill(skeletonCard()).join('<div class="my-4"></div>');
-        dom.menuContainer.innerHTML = Array(3).fill(skeletonCard('h-24')).join('');
-        dom.customersContainer.innerHTML = Array(5).fill(skeletonCard('h-16')).join('<div class="my-3"></div>');
+    function renderAll() {
+        if(state.activePage === 'page-orders') renderOrders();
+        if(state.activePage === 'page-menu') renderMenu();
+        if(state.activePage === 'page-customers') renderCustomers();
+        if(state.activePage === 'page-settings') renderSettings();
     }
 
     function renderOrders() {
-        dom.ordersContainer.innerHTML = state.orders.length === 0 
+        const sortedOrders = [...state.orders].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+        dom.ordersContainer.innerHTML = sortedOrders.length === 0 
             ? `<p class="text-center text-slate-500 mt-8">Tidak ada pesanan masuk.</p>`
-            : state.orders.map(order => {
+            : sortedOrders.map(order => {
                 const details = order.details || {};
-                const customerInfo = details.type === 'Online' 
+                 const customerInfo = details.type === 'Online' 
                     ? `Online: ${details.name} - ${details.address}` 
                     : `Dine-in: ${details.name} - Meja ${details.table}`;
-                
                 const statusClasses = {
-                    'Pending': 'bg-amber-100 text-amber-700',
-                    'Preparing': 'bg-blue-100 text-blue-700',
-                    'Ready': 'bg-green-100 text-green-700',
-                    'Completed': 'bg-slate-100 text-slate-600'
+                    'Pending': 'bg-amber-100 text-amber-700', 'Preparing': 'bg-blue-100 text-blue-700',
+                    'Ready': 'bg-green-100 text-green-700', 'Completed': 'bg-slate-100 text-slate-600'
                 };
-
                 return `
                 <div class="bg-white p-4 rounded-xl shadow-sm">
                     <div class="flex justify-between items-start">
@@ -317,8 +211,8 @@
                         </div>
                         <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${statusClasses[order.status] || 'bg-gray-100'}">${order.status}</span>
                     </div>
-                    <ul class="text-sm list-disc list-inside my-2 pl-2 text-slate-700">
-                        ${order.items.map(item => `<li>${item.quantity}x ${state.menu.find(m => m.id === item.menuItemId)?.name || '<i>Item Dihapus</i>'}</li>`).join('')}
+                    <ul class="text-sm list-disc list-inside my-2 pl-2">
+                        ${order.items.map(item => `<li>${item.quantity}x ${state.menu.find(m => m.id === item.id)?.name || '<i>Item Dihapus</i>'}</li>`).join('')}
                     </ul>
                     <div class="border-t pt-2 flex justify-between items-center">
                         <p class="font-bold text-red-600">Rp ${details.total?.toLocaleString('id-ID') || 'N/A'}</p>
@@ -365,8 +259,8 @@
     }
     
     function renderSettings() {
-        dom.promoForm.title.value = state.settings.promo?.title || '';
-        dom.promoForm.subtitle.value = state.settings.promo?.subtitle || '';
+        document.getElementById('promoTitle').value = state.settings.promo.title;
+        document.getElementById('promoSubtitle').value = state.settings.promo.subtitle;
         dom.categoriesContainer.innerHTML = state.categories.map(cat => `
             <div class="bg-slate-100 p-2 rounded-lg flex justify-between items-center">
                 <p>${cat.icon} ${cat.name}</p>
@@ -375,6 +269,25 @@
         `).join('');
     }
     
+    function deriveCustomersFromOrders() {
+        const customersMap = new Map();
+        // Get customer data directly from orders to avoid async issues
+        state.orders.forEach(order => {
+             const userId = order.userId;
+             const userInOrder = order.details.name;
+             // Try to find more complete user data from localStorage if available
+             const fullUser = JSON.parse(localStorage.getItem('currentUser'));
+             if (userId && !customersMap.has(userId)) {
+                 customersMap.set(userId, {
+                     id: userId,
+                     name: userInOrder || 'Unknown',
+                     points: fullUser && fullUser.id === userId ? fullUser.points : 'N/A'
+                 });
+             }
+        });
+        state.customers = Array.from(customersMap.values());
+    }
+
     // --- PAGE NAVIGATION ---
     function switchPage(targetPageId) {
         state.activePage = targetPageId;
@@ -383,12 +296,7 @@
         dom.pages.forEach(p => p.classList.toggle('active', p.id === targetPageId));
         dom.navLinks.forEach(l => l.classList.toggle('active', l.dataset.target === targetPageId));
         dom.fab.style.display = ['page-menu', 'page-settings'].includes(targetPageId) ? 'flex' : 'none';
-        
-        // Ensure content is rendered on switch
-        if (targetPageId === 'page-orders') renderOrders();
-        else if (targetPageId === 'page-menu') renderMenu();
-        else if (targetPageId === 'page-customers') renderCustomers();
-        else if (targetPageId === 'page-settings') renderSettings();
+        renderAll();
     }
 
     // --- MODAL & FORM HANDLING ---
@@ -420,39 +328,38 @@
         dom.formModal.classList.remove('hidden');
     }
 
-    async function handleFormSubmit(e) {
+    function handleFormSubmit(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
         const mode = e.target.dataset.mode;
 
-        try {
-            switch(mode) {
-                case 'add-menu':
-                    await addDoc(collection(db, `/artifacts/${appId}/public/data/menu`), {
-                        ...data, price: Number(data.price), rating: data.rating
-                    });
-                    showToast('Menu berhasil ditambahkan', 'success');
-                    break;
-                case 'edit-menu': 
-                    const menuRef = doc(db, `/artifacts/${appId}/public/data/menu`, data.id);
-                    await updateDoc(menuRef, { ...data, price: Number(data.price), rating: data.rating });
-                    showToast('Menu berhasil diperbarui', 'success');
-                    break;
-                case 'add-category':
-                    await addDoc(collection(db, `/artifacts/${appId}/public/data/categories`), data);
-                    showToast('Kategori berhasil ditambahkan', 'success');
-                    break;
-            }
-        } catch (error) {
-            console.error("Form submission error:", error);
-            showToast('Terjadi kesalahan', 'error');
+        switch(mode) {
+            case 'add-menu': 
+                state.menu.push({ ...data, id: `menu_${Date.now()}`, price: Number(data.price) }); 
+                break;
+            case 'edit-menu': 
+                const idx = state.menu.findIndex(i => i.id == data.id);
+                if (idx > -1) state.menu[idx] = { ...state.menu[idx], ...data, price: Number(data.price) };
+                break;
+            case 'add-category': 
+                state.categories.push({ ...data, id: `cat_${Date.now()}` }); 
+                break;
         }
         
+        saveState();
+        renderAll();
         dom.formModal.classList.add('hidden');
+        showToast('Data berhasil disimpan!', 'success');
     }
 
-    function showToast(message, type = 'info') {
+    function addNotification(message, userId) {
+        const notifs = JSON.parse(localStorage.getItem('notifications')) || [];
+        notifs.push({ id: `notif_${Date.now()}`, message, userId });
+        localStorage.setItem('notifications', JSON.stringify(notifs));
+    }
+    
+    function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `<span class="font-semibold text-sm text-slate-700">${message}</span>`;
@@ -471,56 +378,50 @@
         dom.closeModalBtn.addEventListener('click', () => dom.formModal.classList.add('hidden'));
         dom.mainForm.addEventListener('submit', handleFormSubmit);
 
-        // Delegated event listeners for dynamic content
-        document.body.addEventListener('change', async e => {
+        document.body.addEventListener('change', e => {
             if (e.target.matches('.order-status-selector')) {
                 const orderId = e.target.dataset.id;
                 const newStatus = e.target.value;
-                const orderRef = doc(db, `/artifacts/${appId}/public/data/orders`, orderId);
-                try {
-                    await updateDoc(orderRef, { status: newStatus });
+                const orderIndex = state.orders.findIndex(o => o.id === orderId);
+                if (orderIndex > -1) {
+                    state.orders[orderIndex].status = newStatus;
+                    saveState();
+                    renderOrders();
                     showToast(`Status pesanan #${orderId.slice(-6).toUpperCase()} diperbarui`, 'success');
-                } catch (error) {
-                    showToast('Gagal memperbarui status', 'error');
-                    console.error(error);
+                    addNotification(`Pesanan #${orderId.slice(-6).toUpperCase()} sekarang ${newStatus}!`, state.orders[orderIndex].userId);
                 }
             }
         });
 
-        document.body.addEventListener('click', async e => {
+        document.body.addEventListener('click', e => {
             if (e.target.matches('.edit-menu-btn')) {
-                const menuItem = state.menu.find(m => m.id === e.target.dataset.id);
-                if(menuItem) openFormModal('edit-menu', menuItem);
+                openFormModal('edit-menu', state.menu.find(m => m.id === e.target.dataset.id));
             }
             if (e.target.matches('.delete-menu-btn')) {
-                const menuId = e.target.dataset.id;
-                if (window.confirm('Yakin ingin hapus menu ini? Aksi ini tidak dapat dibatalkan.')) {
-                    await deleteDoc(doc(db, `/artifacts/${appId}/public/data/menu`, menuId));
-                    showToast('Menu berhasil dihapus.', 'success');
+                if (confirm('Yakin ingin hapus menu ini?')) {
+                    state.menu = state.menu.filter(m => m.id !== e.target.dataset.id);
+                    saveState(); renderMenu();
                 }
             }
             if (e.target.matches('.delete-category-btn')) {
-                const catId = e.target.dataset.id;
-                 if (window.confirm('Yakin ingin hapus kategori ini?')) {
-                    await deleteDoc(doc(db, `/artifacts/${appId}/public/data/categories`, catId));
-                    showToast('Kategori berhasil dihapus.', 'success');
+                 if (confirm('Yakin ingin hapus kategori ini?')) {
+                    state.categories = state.categories.filter(c => c.id !== e.target.dataset.id);
+                    saveState(); renderSettings();
                 }
             }
         });
 
-        dom.promoForm.form.addEventListener('submit', async (e) => {
+        document.getElementById('promo-form').addEventListener('submit', e => {
             e.preventDefault();
-            const promoData = {
-                title: dom.promoForm.title.value,
-                subtitle: dom.promoForm.subtitle.value
-            };
-            const settingsRef = doc(db, `/artifacts/${appId}/public/data/settings/main`);
-            await setDoc(settingsRef, { promo: promoData }, { merge: true });
-            showToast('Info promo berhasil disimpan!', 'success');
+            state.settings.promo.title = document.getElementById('promoTitle').value;
+            state.settings.promo.subtitle = document.getElementById('promoSubtitle').value;
+            saveState();
+            showToast('Info promo berhasil disimpan!');
         });
     }
 
-    initializeAdminPanel();
+    initializeApp();
+});
 </script>
 </body>
 </html>
