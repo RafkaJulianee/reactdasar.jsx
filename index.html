@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesan Makanan</title>
+    <title>Pesan Makanan v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +21,20 @@
             to { opacity: 1; transform: translateY(0); } 
         }
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .toast {
+            background-color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            animation: slideInRight 0.3s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+        }
+        .toast.success { border-left: 4px solid #10b981; } /* emerald-500 */
+        .toast.error { border-left: 4px solid #ef4444; } /* red-500 */
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .modal-backdrop { transition: opacity 0.3s ease-in-out; }
@@ -28,9 +42,23 @@
             border-color: #dc2626; /* red-600 */
             background-color: #fee2e2; /* red-100 */
         }
+        .skeleton {
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            50% { opacity: .5; }
+        }
     </style>
 </head>
 <body class="text-slate-800">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[110] flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600"></div>
+        <p class="mt-4 text-lg font-semibold text-slate-700">Memuat Data...</p>
+    </div>
 
     <!-- Main Content -->
     <main class="container mx-auto px-5 pt-6 pb-32">
@@ -63,7 +91,7 @@
                 <h3 id="promoTitle" class="font-bold text-lg">Dapatkan Gratis!</h3>
                 <p id="promoSubtitle" class="text-sm opacity-90">Minuman dingin di setiap pesanan burger.</p>
             </div>
-            <img src="https://assets.stickpng.com/images/580b57fcd9996e24bc43c1a8.png" class="w-24 transform -rotate-12">
+            <img src="https://assets.stickpng.com/images/580b57fcd9996e24bc43c1a8.png" onerror="this.onerror=null;this.src='https://placehold.co/100x100/ffffff/c4281e?text=Promo';" class="w-24 transform -rotate-12">
         </div>
         <h2 class="text-xl font-bold text-slate-900 mb-4">Menu Hari Ini</h2>
         <div id="menu-container" class="grid grid-cols-2 gap-x-4 gap-y-6"></div>
@@ -87,22 +115,22 @@
         <!-- Product Detail Modal -->
         <div id="detailModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-[70] flex items-center justify-center p-4 modal-backdrop">
              <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm mx-auto slide-up relative">
-                <div class="h-56 -mt-16 flex justify-center items-center">
-                     <img id="detailImage" src="" alt="Product Image" class="max-h-full max-w-full drop-shadow-2xl">
-                </div>
-                <button class="close-modal-btn absolute top-4 left-4 bg-white/70 backdrop-blur-sm rounded-full p-2 text-slate-800">&lt;</button>
-                <div class="p-6">
-                     <div class="flex justify-between items-start">
-                        <h3 id="detailName" class="text-2xl font-bold text-slate-900">Nama Produk</h3>
-                        <div class="flex items-center space-x-1 bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-sm font-bold"><span>⭐</span><span>4.5</span></div>
-                    </div>
-                    <div class="flex justify-between items-center mt-2">
-                        <div id="detailPoints" class="text-red-600 font-semibold">+0 Poin</div>
-                        <div id="detailPrice" class="text-2xl font-extrabold text-slate-900">Rp 0</div>
-                    </div>
-                    <p id="detailDesc" class="text-slate-500 mt-4 text-sm leading-relaxed">Deskripsi produk.</p>
-                    <button id="detailAddToCart" class="mt-6 w-full bg-red-600 text-white font-bold py-4 rounded-full">Tambah ke Keranjang</button>
-                </div>
+                 <div class="h-56 -mt-16 flex justify-center items-center">
+                      <img id="detailImage" src="" alt="Product Image" class="max-h-full max-w-full drop-shadow-2xl">
+                 </div>
+                 <button class="close-modal-btn absolute top-4 left-4 bg-white/70 backdrop-blur-sm rounded-full p-2 text-slate-800 focus:outline-none">&lt;</button>
+                 <div class="p-6">
+                      <div class="flex justify-between items-start">
+                           <h3 id="detailName" class="text-2xl font-bold text-slate-900">Nama Produk</h3>
+                           <div class="flex items-center space-x-1 bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-sm font-bold"><span>⭐</span><span id="detailRating">4.5</span></div>
+                     </div>
+                      <div class="flex justify-between items-center mt-2">
+                           <div id="detailPoints" class="text-red-600 font-semibold">+0 Poin</div>
+                           <div id="detailPrice" class="text-2xl font-extrabold text-slate-900">Rp 0</div>
+                      </div>
+                      <p id="detailDesc" class="text-slate-500 mt-4 text-sm leading-relaxed">Deskripsi produk.</p>
+                      <button id="detailAddToCart" class="mt-6 w-full bg-red-600 text-white font-bold py-4 rounded-full hover:bg-red-700 transition-colors">Tambah ke Keranjang</button>
+                 </div>
             </div>
         </div>
         <!-- Cart Modal -->
@@ -120,8 +148,8 @@
         <div id="checkoutTypeModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[80] flex items-center justify-center p-4 modal-backdrop">
              <div class="bg-white rounded-2xl shadow-xl w-full max-w-xs mx-auto slide-up p-6 text-center space-y-4">
                 <h3 class="font-bold text-lg">Pilih Tipe Pesanan</h3>
-                <button data-type="Dine-in" class="checkout-type-btn w-full bg-red-100 text-red-700 py-3 rounded-lg">Makan di Tempat</button>
-                <button data-type="Online" class="checkout-type-btn w-full bg-red-100 text-red-700 py-3 rounded-lg">Pesan Online</button>
+                <button data-type="Dine-in" class="checkout-type-btn w-full bg-red-100 text-red-700 py-3 rounded-lg hover:bg-red-200 transition-colors">Makan di Tempat</button>
+                <button data-type="Online" class="checkout-type-btn w-full bg-red-100 text-red-700 py-3 rounded-lg hover:bg-red-200 transition-colors">Pesan Online</button>
                 <button class="close-modal-btn mt-2 text-slate-500 text-sm">Batal</button>
             </div>
         </div>
@@ -130,7 +158,7 @@
             <div class="bg-white rounded-t-3xl shadow-xl w-full slide-up">
                 <div class="p-5 border-b flex justify-between items-center"><h3 class="text-xl font-semibold">Pilih Meja</h3><button class="close-modal-btn text-3xl">&times;</button></div>
                 <form id="dineInForm" class="p-5 space-y-4">
-                    <input type="text" name="name" placeholder="Nama Anda" class="w-full rounded-lg border-slate-300" required>
+                    <input type="text" id="dineInName" name="name" placeholder="Nama Anda" class="w-full rounded-lg border-slate-300" required>
                     <div>
                         <label class="block text-sm font-medium text-slate-600 mb-2">Pilih Nomor Meja:</label>
                         <div id="table-selection" class="grid grid-cols-4 gap-3"></div>
@@ -146,10 +174,10 @@
                  <div class="p-5 border-b flex justify-between items-center"><h3 class="text-xl font-semibold">Detail Pengiriman</h3><button class="close-modal-btn text-3xl">&times;</button></div>
                  <div id="location-check-container" class="p-5 space-y-3">
                     <!-- Location checking UI will be injected here -->
-                 </div>
+                </div>
             </div>
         </div>
-        <!-- THE NEW PAYMENT MODAL -->
+        <!-- Payment Modal -->
         <div id="paymentModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[90] flex items-end modal-backdrop">
             <div class="bg-slate-50 rounded-t-3xl shadow-xl w-full slide-up max-h-[90vh] flex flex-col">
                 <div class="p-5 border-b bg-white rounded-t-3xl">
@@ -171,16 +199,16 @@
                     <div class="bg-white rounded-xl p-4">
                         <h4 class="font-bold mb-3">Metode Pembayaran</h4>
                         <div class="space-y-3">
-                            <button class="payment-option w-full flex items-center p-3 border-2 border-slate-200 rounded-lg text-left">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/1280px-Logo_ovo_purple.svg.png" class="h-6 mr-4">
+                            <button data-method="OVO" class="payment-option w-full flex items-center p-3 border-2 border-slate-200 rounded-lg text-left">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/1280px-Logo_ovo_purple.svg.png" class="h-6 mr-4" onerror="this.onerror=null;this.src='https://placehold.co/100x24/ffffff/4d2a86?text=OVO';">
                                 <span class="font-semibold">OVO</span>
                             </button>
-                            <button class="payment-option w-full flex items-center p-3 border-2 border-slate-200 rounded-lg text-left">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/1280px-Logo_dana_blue.svg.png" class="h-5 mr-4">
+                            <button data-method="DANA" class="payment-option w-full flex items-center p-3 border-2 border-slate-200 rounded-lg text-left">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/1280px-Logo_dana_blue.svg.png" class="h-5 mr-4" onerror="this.onerror=null;this.src='https://placehold.co/100x20/ffffff/108ee9?text=DANA';">
                                 <span class="font-semibold">DANA</span>
                             </button>
-                            <button class="payment-option w-full flex items-center p-3 border-2 border-slate-200 rounded-lg text-left">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/2560px-Gopay_logo.svg.png" class="h-4 mr-4">
+                            <button data-method="GoPay" class="payment-option w-full flex items-center p-3 border-2 border-slate-200 rounded-lg text-left">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/2560px-Gopay_logo.svg.png" class="h-4 mr-4" onerror="this.onerror=null;this.src='https://placehold.co/100x16/ffffff/00a99d?text=GoPay';">
                                 <span class="font-semibold">GoPay</span>
                             </button>
                         </div>
@@ -205,21 +233,36 @@
     </div>
     <div id="toast-container" class="toast-container space-y-2"></div>
     
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // --- STATE & CONFIG ---
+<script type="module">
+    // --- Firebase SDK ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, writeBatch, query, where, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- FIREBASE & APP CONFIG ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'food-app-default';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
     const RESTAURANT_LOCATION = { lat: -6.1753924, lng: 106.8271528 }; // Monas, Jakarta
-    const MAX_DELIVERY_DISTANCE_KM = 4;
+    const MAX_DELIVERY_DISTANCE_KM = 5;
     const MIN_ONLINE_ORDER_RP = 50000;
     const DELIVERY_FEE_RP = 8000;
 
+    let app, db, auth, userId, unsubscribeCart;
+    
+    // --- STATE MANAGEMENT ---
     let state = {
-        menu: [], categories: [], settings: {}, cart: [], currentUser: null,
+        menu: [], 
+        categories: [], 
+        settings: {}, 
+        cart: [], 
+        currentUser: null,
         orderData: {} 
     };
     
     // --- DOM ELEMENTS (Cached) ---
     const dom = {
+        loadingOverlay: document.getElementById('loading-overlay'),
         menuContainer: document.getElementById('menu-container'),
         categoryFilter: document.getElementById('category-filter'),
         searchInput: document.getElementById('search-input'),
@@ -232,83 +275,251 @@ document.addEventListener('DOMContentLoaded', () => {
         modalContainer: document.getElementById('modal-container'),
         cartItems: document.getElementById('cartItems'),
         cartTotal: document.getElementById('cartTotal'),
-        checkoutButton: document.getElementById('checkoutButton')
+        checkoutButton: document.getElementById('checkoutButton'),
+        detailModal: {
+            modal: document.getElementById('detailModal'),
+            image: document.getElementById('detailImage'),
+            name: document.getElementById('detailName'),
+            rating: document.getElementById('detailRating'),
+            points: document.getElementById('detailPoints'),
+            price: document.getElementById('detailPrice'),
+            desc: document.getElementById('detailDesc'),
+            addToCart: document.getElementById('detailAddToCart'),
+        }
     };
 
     // --- INITIALIZATION ---
-    function initializeApp() {
-        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
-        state.categories = JSON.parse(localStorage.getItem('categories')) || [];
-        state.settings = JSON.parse(localStorage.getItem('storeSettings')) || {};
-        state.cart = JSON.parse(localStorage.getItem('cart')) || [];
-        state.currentUser = JSON.parse(localStorage.getItem('currentUser')) || { id: `user_${Date.now()}`, name: 'Budi', points: 150 };
-        localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
-        
-        renderAll();
-        setupEventListeners();
-        setInterval(checkNotifications, 4000);
+    async function initializeApp() {
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    await loadInitialData();
+                    setupEventListeners();
+                    setInterval(checkOrderStatus, 30000); // Check every 30 seconds
+                } else {
+                    // Automatically sign in if no user
+                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            dom.loadingOverlay.innerHTML = '<p class="text-red-500">Gagal terhubung ke server.</p>';
+        }
     }
     
+    async function loadInitialData() {
+        renderMenuSkeletons();
+        await setupInitialFirestoreData();
+
+        const settingsDoc = await getDoc(doc(db, `/artifacts/${appId}/public/data/settings/main`));
+        if (settingsDoc.exists()) state.settings = settingsDoc.data();
+
+        const categoriesSnapshot = await getDocs(collection(db, `/artifacts/${appId}/public/data/categories`));
+        state.categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const menuSnapshot = await getDocs(collection(db, `/artifacts/${appId}/public/data/menu`));
+        state.menu = menuSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const userDocRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/info`);
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) {
+            state.currentUser = { name: 'Budi', points: 150 };
+            await setDoc(userDocRef, state.currentUser);
+        } else {
+            state.currentUser = userDoc.data();
+        }
+        
+        attachCartListener();
+        renderAllStatic();
+        dom.loadingOverlay.style.display = 'none';
+    }
+
     // --- RENDER FUNCTIONS ---
-    function renderAll() {
+    function renderAllStatic() {
         renderUserInfo();
         renderPromoBanner();
         renderCategories();
         renderMenu();
-        updateCartUI();
     }
     
-    function renderUserInfo() { dom.userName.textContent = state.currentUser.name; dom.userPoints.textContent = state.currentUser.points.toLocaleString('id-ID'); }
-    function renderPromoBanner() { if (state.settings.promo) { dom.promoTitle.textContent = state.settings.promo.title; dom.promoSubtitle.textContent = state.settings.promo.subtitle; } }
+    function renderUserInfo() {
+        dom.userName.textContent = state.currentUser.name;
+        dom.userPoints.textContent = state.currentUser.points.toLocaleString('id-ID');
+        document.getElementById('dineInName').value = state.currentUser.name;
+    }
+
+    function renderPromoBanner() {
+        if (state.settings.promo) {
+            dom.promoTitle.textContent = state.settings.promo.title;
+            dom.promoSubtitle.textContent = state.settings.promo.subtitle;
+        }
+    }
+
     function renderCategories() {
         const allCategories = [{ name: 'All', icon: '🔥' }, ...state.categories];
         dom.categoryFilter.innerHTML = allCategories.map((cat, i) => `<button data-category="${cat.name}" class="category-btn flex flex-col items-center space-y-2 flex-shrink-0 w-20"><div class="w-16 h-16 rounded-2xl flex items-center justify-center ${i === 0 ? 'bg-red-600 text-white' : 'bg-white'} text-2xl shadow-sm">${cat.icon}</div><span class="text-sm font-medium ${i === 0 ? 'text-red-600' : 'text-slate-600'}">${cat.name}</span></button>`).join('');
     }
+
     function renderMenu(category = 'All', searchTerm = '') {
-        let filteredMenu = state.menu.filter(item => (category === 'All' || item.category === category) && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        dom.menuContainer.innerHTML = filteredMenu.map(item => `<div data-id="${item.id}" class="menu-item-card bg-white p-3 rounded-2xl shadow-md fade-in cursor-pointer"><div class="h-28 flex items-center justify-center mb-2"><img src="${item.image}" alt="${item.name}" class="max-h-full max-w-full drop-shadow-lg"></div><h3 class="font-semibold text-sm truncate">${item.name}</h3><div class="flex justify-between items-center mt-2"><p class="font-bold">Rp${(item.price/1000).toFixed(0)}k</p><button data-id="${item.id}" class="add-to-cart-btn bg-red-600 text-white w-8 h-8 rounded-full font-bold text-lg">+</button></div></div>`).join('');
+        let filteredMenu = state.menu.filter(item => 
+            (category === 'All' || item.category === category) && 
+            item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        if (filteredMenu.length === 0) {
+            dom.menuContainer.innerHTML = `<p class="col-span-2 text-center text-slate-500">Menu tidak ditemukan.</p>`;
+            return;
+        }
+        dom.menuContainer.innerHTML = filteredMenu.map(item => `
+            <div data-id="${item.id}" class="menu-item-card bg-white p-3 rounded-2xl shadow-md fade-in cursor-pointer">
+                <div class="h-28 flex items-center justify-center mb-2">
+                    <img src="${item.image}" alt="${item.name}" class="max-h-full max-w-full drop-shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/150x150/f8fafc/dc2626?text=${item.name}';">
+                </div>
+                <h3 class="font-semibold text-sm truncate">${item.name}</h3>
+                <div class="flex justify-between items-center mt-2">
+                    <p class="font-bold">Rp${(item.price/1000).toFixed(0)}k</p>
+                    <button data-id="${item.id}" class="add-to-cart-btn bg-red-600 text-white w-8 h-8 rounded-full font-bold text-lg">+</button>
+                </div>
+            </div>`).join('');
+    }
+    
+    function renderMenuSkeletons() {
+        dom.menuContainer.innerHTML = Array(6).fill('').map(() => `
+            <div class="bg-white p-3 rounded-2xl shadow-md">
+                <div class="skeleton h-28 mb-2"></div>
+                <div class="skeleton h-4 w-3/4 mb-2"></div>
+                <div class="flex justify-between items-center">
+                    <div class="skeleton h-6 w-1/4"></div>
+                    <div class="skeleton h-8 w-8 rounded-full"></div>
+                </div>
+            </div>`).join('');
     }
 
     // --- CART LOGIC ---
+    function attachCartListener() {
+        if (unsubscribeCart) unsubscribeCart(); // Detach old listener
+        const cartRef = collection(db, `/artifacts/${appId}/users/${userId}/cart`);
+        unsubscribeCart = onSnapshot(cartRef, (snapshot) => {
+            state.cart = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            updateCartUI();
+        });
+    }
+
     function getCartTotal() {
-        return state.cart.reduce((sum, item) => sum + (state.menu.find(m => m.id === item.id)?.price || 0) * item.quantity, 0);
+        return state.cart.reduce((sum, item) => {
+            const menuItem = state.menu.find(m => m.id === item.menuItemId);
+            return sum + (menuItem?.price || 0) * item.quantity;
+        }, 0);
     }
+
     function updateCartUI() {
-        dom.cartCount.textContent = state.cart.reduce((sum, item) => sum + item.quantity, 0);
-        localStorage.setItem('cart', JSON.stringify(state.cart));
-        renderCartItems();
+        const totalQuantity = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+        dom.cartCount.textContent = totalQuantity;
+        if (!document.getElementById('cartModal').classList.contains('hidden')) {
+             renderCartItems();
+        }
     }
+
     function renderCartItems() {
-        if (document.getElementById('cartModal').classList.contains('hidden')) return;
         const total = getCartTotal();
         if (state.cart.length === 0) {
             dom.cartItems.innerHTML = '<p class="text-slate-500 text-center py-8">Keranjangmu kosong.</p>';
-            dom.cartTotal.textContent = 'Rp 0'; dom.checkoutButton.disabled = true; return;
+            dom.cartTotal.textContent = 'Rp 0';
+            dom.checkoutButton.disabled = true;
+            return;
         }
         dom.cartItems.innerHTML = state.cart.map(cartItem => {
-            const menuItem = state.menu.find(m => m.id === cartItem.id);
-            return `<div class="flex justify-between items-center py-3 border-b"><div class="flex items-center space-x-3"><img src="${menuItem.image}" class="w-12 h-12 object-contain bg-slate-100 rounded-lg p-1"><div><p class="font-semibold">${menuItem.name}</p><p class="text-sm text-slate-500">Rp ${menuItem.price.toLocaleString('id-ID')}</p></div></div><div class="flex items-center space-x-3"><button data-id="${menuItem.id}" class="decrease-qty-btn bg-slate-200 w-7 h-7 rounded-full font-bold">-</button><span>${cartItem.quantity}</span><button data-id="${menuItem.id}" class="increase-qty-btn bg-red-600 text-white w-7 h-7 rounded-full font-bold">+</button></div></div>`;
+            const menuItem = state.menu.find(m => m.id === cartItem.menuItemId);
+            if (!menuItem) return '';
+            return `<div class="flex justify-between items-center py-3 border-b">
+                <div class="flex items-center space-x-3">
+                    <img src="${menuItem.image}" class="w-12 h-12 object-contain bg-slate-100 rounded-lg p-1" onerror="this.onerror=null;this.src='https://placehold.co/48x48/f1f5f9/dc2626?text=Img';">
+                    <div>
+                        <p class="font-semibold">${menuItem.name}</p>
+                        <p class="text-sm text-slate-500">Rp ${menuItem.price.toLocaleString('id-ID')}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button data-id="${cartItem.id}" class="decrease-qty-btn bg-slate-200 w-7 h-7 rounded-full font-bold">-</button>
+                    <span>${cartItem.quantity}</span>
+                    <button data-id="${cartItem.id}" class="increase-qty-btn bg-red-600 text-white w-7 h-7 rounded-full font-bold">+</button>
+                </div>
+            </div>`;
         }).join('');
         dom.cartTotal.textContent = `Rp ${total.toLocaleString('id-ID')}`;
         dom.checkoutButton.disabled = false;
     }
-    function addToCart(itemId) {
-        const existingItem = state.cart.find(item => item.id === itemId);
-        if (existingItem) existingItem.quantity++;
-        else state.cart.push({ id: itemId, quantity: 1 });
-        updateCartUI();
+
+    async function addToCart(menuItemId, quantity = 1) {
+        const cartRef = collection(db, `/artifacts/${appId}/users/${userId}/cart`);
+        const q = query(cartRef, where("menuItemId", "==", menuItemId));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const docRef = querySnapshot.docs[0].ref;
+            const currentQuantity = querySnapshot.docs[0].data().quantity;
+            await updateDoc(docRef, { quantity: currentQuantity + quantity });
+        } else {
+            await addDoc(cartRef, { menuItemId, quantity });
+        }
         showToast('Berhasil ditambahkan!', 'success');
     }
-    function changeQuantity(itemId, change) {
-        const idx = state.cart.findIndex(item => item.id === itemId);
-        if (idx > -1) { state.cart[idx].quantity += change; if (state.cart[idx].quantity <= 0) state.cart.splice(idx, 1); }
-        updateCartUI();
+
+    async function changeQuantity(cartItemId, change) {
+        const docRef = doc(db, `/artifacts/${appId}/users/${userId}/cart/${cartItemId}`);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const newQuantity = docSnap.data().quantity + change;
+            if (newQuantity > 0) {
+                await updateDoc(docRef, { quantity: newQuantity });
+            } else {
+                await deleteDoc(docRef);
+            }
+        }
+    }
+
+    // --- UI/MODAL LOGIC ---
+    function openModal(modalId) { 
+        closeAllModals(); 
+        const modal = document.getElementById(modalId);
+        if(modal) modal.classList.remove('hidden'); 
+    }
+    
+    function closeAllModals() { 
+        dom.modalContainer.querySelectorAll('.fixed').forEach(modal => modal.classList.add('hidden')); 
+    }
+
+    function showProductDetail(menuItemId) {
+        const item = state.menu.find(m => m.id === menuItemId);
+        if (!item) return;
+
+        dom.detailModal.image.src = item.image;
+        dom.detailModal.name.textContent = item.name;
+        dom.detailModal.rating.textContent = item.rating;
+        dom.detailModal.points.textContent = `+${Math.floor(item.price / 1000)} Poin`;
+        dom.detailModal.price.textContent = `Rp ${item.price.toLocaleString('id-ID')}`;
+        dom.detailModal.desc.textContent = item.description;
+        dom.detailModal.addToCart.dataset.id = item.id;
+        openModal('detailModal');
+    }
+    
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span class="font-semibold text-sm text-slate-700">${message}</span>`;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     // --- CHECKOUT & PAYMENT FLOW ---
-    function openModal(modalId) { closeAllModals(); document.getElementById(modalId).classList.remove('hidden'); }
-    function closeAllModals() { dom.modalContainer.querySelectorAll('.fixed').forEach(modal => modal.classList.add('hidden')); }
-
     function startCheckout() { openModal('checkoutTypeModal'); }
 
     function handleCheckoutTypeSelect(type) {
@@ -318,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         state.orderData = { type };
         if (type === 'Dine-in') {
-            let tablesHTML = ''; for (let i = 1; i <= 20; i++) tablesHTML += `<button type="button" data-table="${i}" class="table-select-btn h-14 rounded-lg bg-slate-100 font-bold">${i}</button>`;
+            let tablesHTML = ''; for (let i = 1; i <= 20; i++) tablesHTML += `<button type="button" data-table="${i}" class="table-select-btn h-14 rounded-lg bg-slate-100 font-bold hover:bg-slate-200">${i}</button>`;
             document.getElementById('table-selection').innerHTML = tablesHTML;
             openModal('dineInModal');
         } else {
@@ -337,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const distance = getDistance(RESTAURANT_LOCATION.lat, RESTAURANT_LOCATION.lng, latitude, longitude);
                 
                 if (distance <= MAX_DELIVERY_DISTANCE_KM) {
-                    container.innerHTML = `<form id="onlineOrderForm" class="space-y-4"><p class="text-sm text-green-600 bg-green-100 p-3 rounded-lg">✅ Lokasi Anda dalam jangkauan kami! (Jarak: ${distance.toFixed(2)} km)</p><input type="text" name="address" placeholder="Alamat Lengkap Anda" class="w-full rounded-lg border-slate-300" required><textarea name="notes" placeholder="Catatan untuk kurir (opsional)" class="w-full rounded-lg border-slate-300"></textarea><button type="submit" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl mt-2">Lanjut ke Pembayaran</button></form>`;
+                    container.innerHTML = `<form id="onlineOrderForm" class="space-y-4"><p class="text-sm text-green-600 bg-green-100 p-3 rounded-lg">✅ Lokasi Anda dalam jangkauan kami! (Jarak: ${distance.toFixed(2)} km)</p><input type="text" name="name" value="${state.currentUser.name}" placeholder="Nama Anda" class="w-full rounded-lg border-slate-300" required><input type="text" name="address" placeholder="Alamat Lengkap Anda" class="w-full rounded-lg border-slate-300" required><textarea name="notes" placeholder="Catatan untuk kurir (opsional)" class="w-full rounded-lg border-slate-300"></textarea><button type="submit" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl mt-2">Lanjut ke Pembayaran</button></form>`;
                 } else {
                     container.innerHTML = `<div class="text-center p-8"><p class="text-lg font-bold text-red-700">Diluar Jangkauan!</p><p class="text-slate-600 mt-2">Maaf, lokasi Anda berjarak ${distance.toFixed(2)} km, melebihi batas pengiriman kami (${MAX_DELIVERY_DISTANCE_KM} km).</p><button class="close-modal-btn mt-4 bg-slate-200 px-4 py-2 rounded-lg">Tutup</button></div>`;
                 }
@@ -352,9 +563,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtotal = getCartTotal();
         const deliveryFee = state.orderData.type === 'Online' ? DELIVERY_FEE_RP : 0;
         const total = subtotal + deliveryFee;
+        state.orderData.total = total;
+        state.orderData.subtotal = subtotal;
+        state.orderData.deliveryFee = deliveryFee;
 
         document.getElementById('payment-summary-items').innerHTML = state.cart.map(item => {
-            const menuItem = state.menu.find(m => m.id === item.id);
+            const menuItem = state.menu.find(m => m.id === item.menuItemId);
             return `<div class="flex justify-between"><span class="text-slate-600">${item.quantity}x ${menuItem.name}</span><span>Rp ${(menuItem.price * item.quantity).toLocaleString('id-ID')}</span></div>`;
         }).join('');
         
@@ -367,19 +581,32 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal('paymentModal');
     }
 
-    function processFinalOrder() {
-        const total = getCartTotal() + (state.orderData.type === 'Online' ? DELIVERY_FEE_RP : 0);
-        const pointsEarned = Math.floor(total / 1000);
-        const newOrder = { id: `order_${Date.now()}`, timestamp: new Date().toISOString(), status: 'Pending', items: state.cart, total, customerInfo: state.orderData };
-
-        const allOrders = JSON.parse(localStorage.getItem('orders')) || [];
-        allOrders.push(newOrder);
-        localStorage.setItem('orders', JSON.stringify(allOrders));
-
-        state.currentUser.points += pointsEarned;
-        localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+    async function processFinalOrder() {
+        const pointsEarned = Math.floor(state.orderData.total / 1000);
         
-        state.cart = []; updateCartUI(); renderUserInfo();
+        // Create order document
+        const orderDataToSave = {
+            userId: userId,
+            timestamp: new Date(),
+            status: 'Pending',
+            items: state.cart,
+            details: state.orderData
+        };
+        await addDoc(collection(db, `/artifacts/${appId}/public/data/orders`), orderDataToSave);
+
+        // Clear user's cart using a batch write
+        const cartCollectionRef = collection(db, `/artifacts/${appId}/users/${userId}/cart`);
+        const cartSnapshot = await getDocs(cartCollectionRef);
+        const batch = writeBatch(db);
+        cartSnapshot.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+
+        // Update user points
+        const userRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/info`);
+        const newPoints = state.currentUser.points + pointsEarned;
+        await updateDoc(userRef, { points: newPoints });
+        state.currentUser.points = newPoints;
+        renderUserInfo();
         
         const successMsg = state.orderData.type === 'Online' 
             ? `Pesananmu akan tiba dalam <strong>20-30 menit</strong>. Terima kasih!`
@@ -390,40 +617,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- HELPERS & NOTIFICATIONS ---
     function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the earth in km
+        const R = 6371;
         const dLat = (lat2 - lat1) * (Math.PI / 180);
         const dLon = (lon2 - lon1) * (Math.PI / 180);
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
-    function showToast(message, type = 'info') { /* ... implementation ... */ }
-    function checkNotifications() { /* ... implementation ... */ }
+
+    async function checkOrderStatus() {
+        const ordersRef = collection(db, `/artifacts/${appId}/public/data/orders`);
+        const q = query(ordersRef, where("userId", "==", userId));
+        const snapshot = await getDocs(q);
+        
+        snapshot.forEach(orderDoc => {
+            const order = orderDoc.data();
+            const now = new Date();
+            const orderTime = order.timestamp.toDate();
+            const minutesPassed = (now - orderTime) / 60000;
+            let newStatus = order.status;
+
+            if (order.status === 'Pending' && minutesPassed > 0.3) newStatus = 'Preparing'; // > 20 detik
+            if (order.status === 'Preparing' && minutesPassed > 1) newStatus = 'Ready'; // > 1 menit
+            
+            if (newStatus !== order.status) {
+                updateDoc(doc(db, `/artifacts/${appId}/public/data/orders`, orderDoc.id), { status: newStatus });
+                showToast(`Pesanan Anda sekarang: ${newStatus}!`);
+            }
+        });
+    }
 
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
         dom.menuContainer.addEventListener('click', e => {
-            if (e.target.closest('.add-to-cart-btn')) { e.stopPropagation(); addToCart(parseInt(e.target.closest('.add-to-cart-btn').dataset.id)); return; }
-            if (e.target.closest('.menu-item-card')) { /* open detail modal */ }
+            const addToCartBtn = e.target.closest('.add-to-cart-btn');
+            if (addToCartBtn) {
+                e.stopPropagation(); 
+                addToCart(addToCartBtn.dataset.id); 
+                return;
+            }
+            const menuItemCard = e.target.closest('.menu-item-card');
+            if (menuItemCard) {
+                showProductDetail(menuItemCard.dataset.id);
+            }
         });
-        dom.categoryFilter.addEventListener('click', e => { /* category filtering */ });
-        dom.searchInput.addEventListener('input', () => { /* search logic */ });
+
+        dom.categoryFilter.addEventListener('click', e => {
+            const categoryBtn = e.target.closest('.category-btn');
+            if(categoryBtn) {
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.children[0].classList.replace('bg-red-600', 'bg-white');
+                    btn.children[0].classList.add('text-black');
+                    btn.children[1].classList.replace('text-red-600', 'text-slate-600');
+                });
+                categoryBtn.children[0].classList.replace('bg-white', 'bg-red-600');
+                categoryBtn.children[0].classList.remove('text-black');
+                categoryBtn.children[1].classList.replace('text-slate-600', 'text-red-600');
+                renderMenu(categoryBtn.dataset.category, dom.searchInput.value);
+            }
+        });
+
+        dom.searchInput.addEventListener('input', () => {
+             const selectedCategory = document.querySelector('.category-btn div.bg-red-600').parentElement.dataset.category;
+             renderMenu(selectedCategory, dom.searchInput.value);
+        });
+
         dom.cartButton.addEventListener('click', () => { openModal('cartModal'); renderCartItems(); });
         dom.checkoutButton.addEventListener('click', startCheckout);
+        dom.detailModal.addToCart.addEventListener('click', (e) => {
+            addToCart(e.target.dataset.id);
+            closeAllModals();
+        });
 
         document.body.addEventListener('click', e => {
             if (e.target.matches('.close-modal-btn')) closeAllModals();
             if (e.target.matches('.checkout-type-btn')) handleCheckoutTypeSelect(e.target.dataset.type);
-            if (e.target.matches('.increase-qty-btn')) changeQuantity(parseInt(e.target.dataset.id), 1);
-            if (e.target.matches('.decrease-qty-btn')) changeQuantity(parseInt(e.target.dataset.id), -1);
+            if (e.target.matches('.increase-qty-btn')) changeQuantity(e.target.dataset.id, 1);
+            if (e.target.matches('.decrease-qty-btn')) changeQuantity(e.target.dataset.id, -1);
             if (e.target.matches('.table-select-btn')) {
                 document.querySelectorAll('.table-select-btn').forEach(btn => btn.classList.remove('bg-red-600', 'text-white'));
                 e.target.classList.add('bg-red-600', 'text-white');
                 document.querySelector('#dineInForm input[name="table"]').value = e.target.dataset.table;
             }
              if (e.target.closest('.payment-option')) {
+                const paymentBtn = e.target.closest('.payment-option');
                 document.querySelectorAll('.payment-option').forEach(btn => btn.classList.remove('selected'));
-                e.target.closest('.payment-option').classList.add('selected');
+                paymentBtn.classList.add('selected');
+                state.orderData.paymentMethod = paymentBtn.dataset.method;
                 document.getElementById('final-pay-button').disabled = false;
             }
             if(e.target.matches('#final-pay-button')) processFinalOrder();
@@ -433,6 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const formData = new FormData(e.target);
             state.orderData = { ...state.orderData, ...Object.fromEntries(formData.entries()) };
+            if (!state.orderData.table) { showToast('Silakan pilih nomor meja', 'error'); return; }
             renderPaymentModal();
         });
          document.body.addEventListener('submit', e => {
@@ -445,9 +726,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- One-time Firestore Data Setup ---
+    async function setupInitialFirestoreData() {
+        const setupRef = doc(db, `/artifacts/${appId}/public/data/settings/setup`);
+        const setupDoc = await getDoc(setupRef);
+        if (setupDoc.exists()) return; // Already setup
+
+        const batch = writeBatch(db);
+
+        // Settings
+        const settingsData = { promo: { title: "Diskon Akhir Pekan!", subtitle: "Gratis Es Teh untuk setiap pembelian." } };
+        batch.set(doc(db, `/artifacts/${appId}/public/data/settings/main`), settingsData);
+
+        // Categories
+        const categoriesData = [
+            { name: "Burger", icon: "🍔" }, { name: "Pizza", icon: "🍕" },
+            { name: "Minuman", icon: "🥤" }, { name: "Snack", icon: "🍟" }
+        ];
+        categoriesData.forEach(cat => batch.set(doc(collection(db, `/artifacts/${appId}/public/data/categories`)), cat));
+
+        // Menu
+        const menuData = [
+            { name: "Cheeseburger Deluxe", price: 55000, category: "Burger", image: "https://freepngimg.com/thumb/burger/5-2-burger-png-thumb.png", rating: "4.8", description: "Burger daging sapi premium dengan keju cheddar leleh, selada segar, tomat, dan saus spesial." },
+            { name: "Pizza Pepperoni", price: 85000, category: "Pizza", image: "https://www.pngall.com/wp-content/uploads/4/Pepperoni-Pizza.png", rating: "4.7", description: "Pizza klasik dengan saus tomat, keju mozzarella, dan irisan pepperoni yang melimpah." },
+            { name: "Kentang Goreng", price: 20000, category: "Snack", image: "https://www.freepnglogos.com/uploads/fries-png/fries-png-images-and-clip-art-1.png", rating: "4.5", description: "Kentang goreng renyah yang digoreng sempurna dan ditaburi sedikit garam." },
+            { name: "Cola Dingin", price: 15000, category: "Minuman", image: "https://www.pngplay.com/wp-content/uploads/13/Coca-Cola-PNG-Images-HD.png", rating: "4.9", description: "Minuman bersoda yang menyegarkan disajikan dingin dengan es batu." },
+            { name: "Beef Burger", price: 50000, category: "Burger", image: "https://purepng.com/public/uploads/large/purepng.com-burgerburgerfast-foodhammeat-481521758535zhb8c.png", rating: "4.6", description: "Burger daging sapi panggang dengan roti bun lembut, sayuran segar dan saus pilihan." },
+            { name: "Pizza Margherita", price: 75000, category: "Pizza", image: "https://www.pngkey.com/png/full/2-23548_classic-margherita-pizza-png.png", rating: "4.8", description: "Pizza otentik Italia dengan saus tomat, keju mozzarella, dan daun basil segar." },
+        ];
+        menuData.forEach(item => batch.set(doc(collection(db, `/artifacts/${appId}/public/data/menu`)), item));
+
+        batch.set(setupRef, { done: true, timestamp: new Date() });
+        await batch.commit();
+        console.log("Firestore initial data setup complete.");
+    }
+
+    // --- Start The App ---
     initializeApp();
-});
+
 </script>
 </body>
 </html>
-
