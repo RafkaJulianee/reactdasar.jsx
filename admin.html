@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Admin Panel v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,9 +28,41 @@
         .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Toast Notifications */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .toast {
+            background-color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            animation: slideInRight 0.3s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+        }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* Skeleton Loader */
+        .skeleton {
+            background-color: #e2e8f0;
+            border-radius: 0.5rem;
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            50% { opacity: .6; }
+        }
     </style>
 </head>
 <body class="pb-24">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[110] flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600"></div>
+        <p class="mt-4 text-lg font-semibold text-slate-700">Menyambungkan...</p>
+    </div>
 
     <!-- Header -->
     <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-40">
@@ -72,7 +104,6 @@
                 <div class="bg-white p-5 rounded-xl shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-lg">Kategori Menu</h3>
-                        <button id="addCategoryBtn" class="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full hover:bg-red-200 transition">+ Tambah</button>
                     </div>
                     <div id="categories-container" class="space-y-2"></div>
                 </div>
@@ -122,8 +153,20 @@
         </div>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
+    <div id="toast-container" class="toast-container space-y-2"></div>
+
+<script type="module">
+    // --- Firebase SDK ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, writeBatch, query, where, addDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- FIREBASE & APP CONFIG ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'food-app-default';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+    let app, db, auth;
+    
     // --- STATE MANAGEMENT ---
     let state = {
         menu: [], orders: [], categories: [], customers: [],
@@ -132,94 +175,168 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- DOM ELEMENTS ---
-    const pages = document.querySelectorAll('.page');
-    const navLinks = document.querySelectorAll('.nav-link');
-    const headerTitle = document.getElementById('headerTitle');
-    const fab = document.getElementById('fab');
-    // Containers
-    const ordersContainer = document.getElementById('orders-container');
-    const menuContainer = document.getElementById('menu-container');
-    const customersContainer = document.getElementById('customers-container');
-    const categoriesContainer = document.getElementById('categories-container');
-    // Modal
-    const formModal = document.getElementById('form-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const mainForm = document.getElementById('main-form');
-    const closeModalBtn = document.getElementById('close-modal-btn');
+    const dom = {
+        loadingOverlay: document.getElementById('loading-overlay'),
+        pages: document.querySelectorAll('.page'),
+        navLinks: document.querySelectorAll('.nav-link'),
+        headerTitle: document.getElementById('headerTitle'),
+        fab: document.getElementById('fab'),
+        ordersContainer: document.getElementById('orders-container'),
+        menuContainer: document.getElementById('menu-container'),
+        customersContainer: document.getElementById('customers-container'),
+        categoriesContainer: document.getElementById('categories-container'),
+        formModal: document.getElementById('form-modal'),
+        modalTitle: document.getElementById('modal-title'),
+        mainForm: document.getElementById('main-form'),
+        closeModalBtn: document.getElementById('close-modal-btn'),
+        promoForm: {
+            form: document.getElementById('promo-form'),
+            title: document.getElementById('promoTitle'),
+            subtitle: document.getElementById('promoSubtitle'),
+        }
+    };
     
     // --- INITIALIZATION ---
-    function loadState() {
-        // Load data or set sensible defaults
-        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
-        state.orders = JSON.parse(localStorage.getItem('orders')) || [];
-        state.categories = JSON.parse(localStorage.getItem('categories')) || [{id: 1, name: 'Burger', icon: '🍔'}];
-        state.customers = JSON.parse(localStorage.getItem('customers')) || [];
-        state.settings = JSON.parse(localStorage.getItem('storeSettings')) || { promo: { title: 'Dapatkan Gratis!', subtitle: 'Minuman dingin di setiap pesanan burger.' }};
-        saveState(); // Ensure defaults are saved if they didn't exist
-    }
-
-    function saveState() {
-        for (const key in state) {
-            if (key === 'activePage') continue;
-            const itemKey = {
-                menu: 'menuItems',
-                settings: 'storeSettings'
-            }[key] || key;
-            localStorage.setItem(itemKey, JSON.stringify(state[key]));
+    async function initializeAdminPanel() {
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    attachAllListeners();
+                    setupEventListeners();
+                } else {
+                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            dom.loadingOverlay.innerHTML = '<p class="text-red-500">Gagal terhubung ke server.</p>';
         }
     }
     
-    function initializeApp() {
-        loadState();
-        renderAll();
-        setupEventListeners();
-        // Periodically check for new orders and update customer data
-        setInterval(() => {
-            const newOrders = JSON.parse(localStorage.getItem('orders')) || [];
-            if (JSON.stringify(newOrders) !== JSON.stringify(state.orders)) {
-                state.orders = newOrders;
-                updateCustomersFromOrders();
-                if(state.activePage === 'page-orders') renderOrders();
+    function attachAllListeners() {
+        renderSkeletons();
+        let loaded = { orders: false, menu: false, customers: false, settings: false, categories: false };
+        const checkAllLoaded = () => {
+            if (Object.values(loaded).every(Boolean)) {
+                dom.loadingOverlay.style.display = 'none';
             }
-        }, 2000);
+        };
+
+        // Orders Listener & Customer Derivation
+        const ordersRef = collection(db, `/artifacts/${appId}/public/data/orders`);
+        onSnapshot(query(ordersRef, orderBy('timestamp', 'desc')), async (snapshot) => {
+            state.orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if (state.activePage === 'page-orders') renderOrders();
+            loaded.orders = true;
+
+            // Derive customer list from orders to avoid permission errors
+            const userIds = [...new Set(state.orders.map(order => order.userId).filter(Boolean))];
+            if (userIds.length > 0) {
+                const customerPromises = userIds.map(uid => getDoc(doc(db, `/artifacts/${appId}/users/${uid}/profile/info`)));
+                const customerDocsSnaps = await Promise.all(customerPromises);
+                state.customers = customerDocsSnaps
+                    .map((docSnap, index) => {
+                        if (docSnap.exists()) {
+                            return { id: userIds[index], ...docSnap.data() };
+                        }
+                        return null;
+                    })
+                    .filter(Boolean);
+            } else {
+                state.customers = [];
+            }
+            if (state.activePage === 'page-customers') renderCustomers();
+            loaded.customers = true;
+            checkAllLoaded();
+        });
+
+        // Menu Listener
+        const menuRef = collection(db, `/artifacts/${appId}/public/data/menu`);
+        onSnapshot(menuRef, (snapshot) => {
+            state.menu = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if (state.activePage === 'page-menu') renderMenu();
+            if (state.activePage === 'page-orders') renderOrders();
+            loaded.menu = true; checkAllLoaded();
+        });
+
+        // Settings Listener
+        const settingsRef = doc(db, `/artifacts/${appId}/public/data/settings/main`);
+        onSnapshot(settingsRef, (doc) => {
+            state.settings = doc.data() || { promo: { title: '', subtitle: '' } };
+            if (state.activePage === 'page-settings') renderSettings();
+            loaded.settings = true; checkAllLoaded();
+        });
+
+        // Categories Listener
+        const categoriesRef = collection(db, `/artifacts/${appId}/public/data/categories`);
+        onSnapshot(categoriesRef, (snapshot) => {
+            state.categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if (state.activePage === 'page-settings') renderSettings();
+            loaded.categories = true; checkAllLoaded();
+        });
     }
 
     // --- RENDER FUNCTIONS ---
-    function renderAll() {
-        if(state.activePage === 'page-orders') renderOrders();
-        if(state.activePage === 'page-menu') renderMenu();
-        if(state.activePage === 'page-customers') renderCustomers();
-        if(state.activePage === 'page-settings') renderSettings();
+    function renderSkeletons() {
+        const skeletonCard = (heightClass = 'h-32') => `<div class="skeleton ${heightClass} w-full"></div>`;
+        dom.ordersContainer.innerHTML = Array(4).fill(skeletonCard()).join('<div class="my-4"></div>');
+        dom.menuContainer.innerHTML = Array(3).fill(skeletonCard('h-24')).join('');
+        dom.customersContainer.innerHTML = Array(5).fill(skeletonCard('h-16')).join('<div class="my-3"></div>');
     }
 
     function renderOrders() {
-        const sortedOrders = [...state.orders].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-        ordersContainer.innerHTML = sortedOrders.length === 0 
+        dom.ordersContainer.innerHTML = state.orders.length === 0 
             ? `<p class="text-center text-slate-500 mt-8">Tidak ada pesanan masuk.</p>`
-            : sortedOrders.map(order => `
+            : state.orders.map(order => {
+                const details = order.details || {};
+                const customerInfo = details.type === 'Online' 
+                    ? `Online: ${details.name} - ${details.address}` 
+                    : `Dine-in: ${details.name} - Meja ${details.table}`;
+                
+                const statusClasses = {
+                    'Pending': 'bg-amber-100 text-amber-700',
+                    'Preparing': 'bg-blue-100 text-blue-700',
+                    'Ready': 'bg-green-100 text-green-700',
+                    'Completed': 'bg-slate-100 text-slate-600'
+                };
+
+                return `
                 <div class="bg-white p-4 rounded-xl shadow-sm">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="font-bold">#${order.id.slice(-5)}</p>
-                            <p class="text-xs text-slate-500">${order.customerInfo.type === 'Online' ? `Online: ${order.customerInfo.address}` : `Dine-in: ${order.customerInfo.name} - Meja ${order.customerInfo.table}`}</p>
+                            <p class="font-bold">#${order.id.slice(-6).toUpperCase()}</p>
+                            <p class="text-xs text-slate-500">${customerInfo}</p>
                         </div>
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${order.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}">${order.status}</span>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${statusClasses[order.status] || 'bg-gray-100'}">${order.status}</span>
                     </div>
-                    <ul class="text-sm list-disc list-inside my-2 pl-2">
-                        ${order.items.map(item => `<li>${item.quantity}x ${state.menu.find(m => m.id === item.id)?.name || 'Item Dihapus'}</li>`).join('')}
+                    <ul class="text-sm list-disc list-inside my-2 pl-2 text-slate-700">
+                        ${order.items.map(item => `<li>${item.quantity}x ${state.menu.find(m => m.id === item.menuItemId)?.name || '<i>Item Dihapus</i>'}</li>`).join('')}
                     </ul>
                     <div class="border-t pt-2 flex justify-between items-center">
-                        <p class="font-bold text-red-600">Rp ${order.total.toLocaleString('id-ID')}</p>
-                        ${order.status === 'Pending' ? `<button data-id="${order.id}" class="confirm-order-btn bg-red-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg">Konfirmasi</button>` : ''}
+                        <p class="font-bold text-red-600">Rp ${details.total?.toLocaleString('id-ID') || 'N/A'}</p>
+                        <select data-id="${order.id}" class="order-status-selector text-sm rounded-lg border-slate-300 focus:ring-red-500 focus:border-red-500">
+                            <option ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
+                            <option ${order.status === 'Ready' ? 'selected' : ''}>Ready</option>
+                            <option ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                        </select>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
     }
 
     function renderMenu() {
-        menuContainer.innerHTML = state.menu.map(item => `
+        dom.menuContainer.innerHTML = state.menu.map(item => `
             <div class="bg-white p-3 rounded-xl shadow-sm flex items-start space-x-3">
-                <img src="${item.image}" class="w-20 h-20 object-contain rounded-lg bg-slate-100 p-1">
+                <img src="${item.image}" class="w-20 h-20 object-contain rounded-lg bg-slate-100 p-1" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f1f5f9/dc2626?text=Img';">
                 <div class="flex-1">
                     <p class="font-bold">${item.name}</p>
                     <p class="text-sm text-red-600 font-semibold">Rp ${item.price.toLocaleString('id-ID')}</p>
@@ -234,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderCustomers() {
-        customersContainer.innerHTML = state.customers.length === 0 
+        dom.customersContainer.innerHTML = state.customers.length === 0 
         ? `<p class="text-center text-slate-500 mt-8">Belum ada data pelanggan.</p>`
         : state.customers.map(c => `
              <div class="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center">
@@ -243,14 +360,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="text-xs text-slate-400">ID: ...${c.id.slice(-6)}</p>
                 </div>
                 <p class="font-bold text-amber-600">${c.points} Poin</p>
-             </div>
+            </div>
         `).join('');
     }
     
     function renderSettings() {
-        document.getElementById('promoTitle').value = state.settings.promo.title;
-        document.getElementById('promoSubtitle').value = state.settings.promo.subtitle;
-        categoriesContainer.innerHTML = state.categories.map(cat => `
+        dom.promoForm.title.value = state.settings.promo?.title || '';
+        dom.promoForm.subtitle.value = state.settings.promo?.subtitle || '';
+        dom.categoriesContainer.innerHTML = state.categories.map(cat => `
             <div class="bg-slate-100 p-2 rounded-lg flex justify-between items-center">
                 <p>${cat.icon} ${cat.name}</p>
                 <button data-id="${cat.id}" class="delete-category-btn text-red-500 text-sm font-semibold">Hapus</button>
@@ -258,29 +375,20 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
     
-    function updateCustomersFromOrders() {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if(currentUser) {
-            const customerIndex = state.customers.findIndex(c => c.id === currentUser.id);
-            if (customerIndex !== -1) {
-                state.customers[customerIndex] = currentUser;
-            } else {
-                state.customers.push(currentUser);
-            }
-            saveState();
-            if (state.activePage === 'page-customers') renderCustomers();
-        }
-    }
-
     // --- PAGE NAVIGATION ---
     function switchPage(targetPageId) {
         state.activePage = targetPageId;
         const pageTitles = { 'page-orders': 'Pesanan Masuk', 'page-menu': 'Kelola Menu', 'page-customers': 'Data Pelanggan', 'page-settings': 'Pengaturan' };
-        headerTitle.textContent = pageTitles[targetPageId];
-        pages.forEach(p => p.classList.toggle('active', p.id === targetPageId));
-        navLinks.forEach(l => l.classList.toggle('active', l.dataset.target === targetPageId));
-        fab.style.display = ['page-menu', 'page-settings'].includes(targetPageId) ? 'flex' : 'none';
-        renderAll();
+        dom.headerTitle.textContent = pageTitles[targetPageId];
+        dom.pages.forEach(p => p.classList.toggle('active', p.id === targetPageId));
+        dom.navLinks.forEach(l => l.classList.toggle('active', l.dataset.target === targetPageId));
+        dom.fab.style.display = ['page-menu', 'page-settings'].includes(targetPageId) ? 'flex' : 'none';
+        
+        // Ensure content is rendered on switch
+        if (targetPageId === 'page-orders') renderOrders();
+        else if (targetPageId === 'page-menu') renderMenu();
+        else if (targetPageId === 'page-customers') renderCustomers();
+        else if (targetPageId === 'page-settings') renderSettings();
     }
 
     // --- MODAL & FORM HANDLING ---
@@ -288,104 +396,131 @@ document.addEventListener('DOMContentLoaded', () => {
         let formHTML = '';
         switch(mode) {
             case 'add-menu': case 'edit-menu':
-                modalTitle.textContent = mode === 'add-menu' ? 'Tambah Menu' : 'Edit Menu';
+                dom.modalTitle.textContent = mode === 'add-menu' ? 'Tambah Menu' : 'Edit Menu';
                 formHTML = `
                     <input type="hidden" name="id" value="${data.id || ''}">
                     <input type="text" name="name" placeholder="Nama Makanan" class="w-full rounded-lg border-slate-300" value="${data.name || ''}" required>
                     <input type="number" name="price" placeholder="Harga" class="w-full rounded-lg border-slate-300" value="${data.price || ''}" required>
                     <input type="text" name="image" placeholder="URL Gambar" class="w-full rounded-lg border-slate-300" value="${data.image || ''}" required>
+                    <input type="text" name="rating" placeholder="Rating (e.g., 4.5)" class="w-full rounded-lg border-slate-300" value="${data.rating || ''}" required>
                     <select name="category" class="w-full rounded-lg border-slate-300" required>
                         ${state.categories.map(c => `<option value="${c.name}" ${data.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
-                    <textarea name="desc" placeholder="Deskripsi" class="w-full rounded-lg border-slate-300">${data.desc || ''}</textarea>
+                    <textarea name="description" placeholder="Deskripsi" class="w-full rounded-lg border-slate-300">${data.description || ''}</textarea>
                     <button type="submit" class="w-full bg-red-600 text-white font-semibold py-3 rounded-lg">Simpan Menu</button>
                 `;
                 break;
             case 'add-category':
-                 modalTitle.textContent = 'Tambah Kategori';
+                 dom.modalTitle.textContent = 'Tambah Kategori';
                  formHTML = `<input type="text" name="name" placeholder="Nama Kategori" class="w-full rounded-lg" required><input type="text" name="icon" placeholder="Ikon Emoji (misal: 🍹)" class="w-full rounded-lg" required><button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg">Simpan</button>`;
                  break;
         }
-        mainForm.innerHTML = formHTML;
-        mainForm.dataset.mode = mode;
-        formModal.classList.remove('hidden');
+        dom.mainForm.innerHTML = formHTML;
+        dom.mainForm.dataset.mode = mode;
+        dom.formModal.classList.remove('hidden');
     }
 
-    function handleFormSubmit(e) {
+    async function handleFormSubmit(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
         const mode = e.target.dataset.mode;
 
-        switch(mode) {
-            case 'add-menu': state.menu.push({ ...data, id: Date.now(), price: Number(data.price), points: Math.floor(Number(data.price)/1000) }); break;
-            case 'edit-menu': 
-                const idx = state.menu.findIndex(i => i.id == data.id);
-                if (idx > -1) state.menu[idx] = { ...state.menu[idx], ...data, price: Number(data.price), points: Math.floor(Number(data.price)/1000) };
-                break;
-            case 'add-category': state.categories.push({ ...data, id: Date.now() }); break;
+        try {
+            switch(mode) {
+                case 'add-menu':
+                    await addDoc(collection(db, `/artifacts/${appId}/public/data/menu`), {
+                        ...data, price: Number(data.price), rating: data.rating
+                    });
+                    showToast('Menu berhasil ditambahkan', 'success');
+                    break;
+                case 'edit-menu': 
+                    const menuRef = doc(db, `/artifacts/${appId}/public/data/menu`, data.id);
+                    await updateDoc(menuRef, { ...data, price: Number(data.price), rating: data.rating });
+                    showToast('Menu berhasil diperbarui', 'success');
+                    break;
+                case 'add-category':
+                    await addDoc(collection(db, `/artifacts/${appId}/public/data/categories`), data);
+                    showToast('Kategori berhasil ditambahkan', 'success');
+                    break;
+            }
+        } catch (error) {
+            console.error("Form submission error:", error);
+            showToast('Terjadi kesalahan', 'error');
         }
         
-        saveState();
-        renderAll();
-        formModal.classList.add('hidden');
+        dom.formModal.classList.add('hidden');
     }
 
-    function addNotification(message) {
-        const notifs = JSON.parse(localStorage.getItem('notifications')) || [];
-        notifs.push({ id: `notif_${Date.now()}`, message });
-        localStorage.setItem('notifications', JSON.stringify(notifs));
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span class="font-semibold text-sm text-slate-700">${message}</span>`;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
-        navLinks.forEach(link => link.addEventListener('click', () => switchPage(link.dataset.target)));
-        fab.addEventListener('click', () => {
+        dom.navLinks.forEach(link => link.addEventListener('click', () => switchPage(link.dataset.target)));
+        dom.fab.addEventListener('click', () => {
             if (state.activePage === 'page-menu') openFormModal('add-menu');
             if (state.activePage === 'page-settings') openFormModal('add-category');
         });
         
-        closeModalBtn.addEventListener('click', () => formModal.classList.add('hidden'));
-        mainForm.addEventListener('submit', handleFormSubmit);
+        dom.closeModalBtn.addEventListener('click', () => dom.formModal.classList.add('hidden'));
+        dom.mainForm.addEventListener('submit', handleFormSubmit);
 
-        document.body.addEventListener('click', e => {
-            if (e.target.matches('.confirm-order-btn')) {
+        // Delegated event listeners for dynamic content
+        document.body.addEventListener('change', async e => {
+            if (e.target.matches('.order-status-selector')) {
                 const orderId = e.target.dataset.id;
-                const order = state.orders.find(o => o.id === orderId);
-                if(order) {
-                    order.status = 'Processing';
-                    saveState();
-                    renderOrders();
-                    addNotification(`Pesanan #${order.id.slice(-5)} sedang diproses!`);
+                const newStatus = e.target.value;
+                const orderRef = doc(db, `/artifacts/${appId}/public/data/orders`, orderId);
+                try {
+                    await updateDoc(orderRef, { status: newStatus });
+                    showToast(`Status pesanan #${orderId.slice(-6).toUpperCase()} diperbarui`, 'success');
+                } catch (error) {
+                    showToast('Gagal memperbarui status', 'error');
+                    console.error(error);
                 }
             }
-            if (e.target.matches('.edit-menu-btn')) openFormModal('edit-menu', state.menu.find(m => m.id == e.target.dataset.id));
+        });
+
+        document.body.addEventListener('click', async e => {
+            if (e.target.matches('.edit-menu-btn')) {
+                const menuItem = state.menu.find(m => m.id === e.target.dataset.id);
+                if(menuItem) openFormModal('edit-menu', menuItem);
+            }
             if (e.target.matches('.delete-menu-btn')) {
-                if (confirm('Yakin ingin hapus menu ini?')) {
-                    state.menu = state.menu.filter(m => m.id != e.target.dataset.id);
-                    saveState(); renderMenu();
+                const menuId = e.target.dataset.id;
+                if (window.confirm('Yakin ingin hapus menu ini? Aksi ini tidak dapat dibatalkan.')) {
+                    await deleteDoc(doc(db, `/artifacts/${appId}/public/data/menu`, menuId));
+                    showToast('Menu berhasil dihapus.', 'success');
                 }
             }
             if (e.target.matches('.delete-category-btn')) {
-                 if (confirm('Yakin ingin hapus kategori ini?')) {
-                    state.categories = state.categories.filter(c => c.id != e.target.dataset.id);
-                    saveState(); renderSettings();
+                const catId = e.target.dataset.id;
+                 if (window.confirm('Yakin ingin hapus kategori ini?')) {
+                    await deleteDoc(doc(db, `/artifacts/${appId}/public/data/categories`, catId));
+                    showToast('Kategori berhasil dihapus.', 'success');
                 }
             }
-            if (e.target.matches('#addCategoryBtn')) openFormModal('add-category');
         });
 
-        document.getElementById('promo-form').addEventListener('submit', e => {
+        dom.promoForm.form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            state.settings.promo.title = document.getElementById('promoTitle').value;
-            state.settings.promo.subtitle = document.getElementById('promoSubtitle').value;
-            saveState();
-            alert('Info promo berhasil disimpan!');
+            const promoData = {
+                title: dom.promoForm.title.value,
+                subtitle: dom.promoForm.subtitle.value
+            };
+            const settingsRef = doc(db, `/artifacts/${appId}/public/data/settings/main`);
+            await setDoc(settingsRef, { promo: promoData }, { merge: true });
+            showToast('Info promo berhasil disimpan!', 'success');
         });
     }
 
-    initializeApp();
-});
+    initializeAdminPanel();
 </script>
 </body>
 </html>
