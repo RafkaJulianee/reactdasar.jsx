@@ -294,26 +294,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function loadState() {
-        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
-        state.categories = JSON.parse(localStorage.getItem('categories')) || [];
-        state.settings = JSON.parse(localStorage.getItem('storeSettings')) || {};
+    // --- FIX: Centralized function to load and sync all data from localStorage ---
+    function loadAndSyncState() {
+        // Load user first to get cart ID
         state.currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
         if (!state.currentUser) {
             state.currentUser = { id: `user_${Date.now()}`, name: 'Budi', points: 150 };
             localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
         }
+
+        // Load master data (menu, categories, settings)
+        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
+        state.categories = JSON.parse(localStorage.getItem('categories')) || [];
+        state.settings = JSON.parse(localStorage.getItem('storeSettings')) || {};
         
+        // Load cart and filter it against the current menu to remove outdated items
         const cartFromStorage = JSON.parse(localStorage.getItem(`cart_${state.currentUser.id}`)) || [];
-        
-        // FIX: Membersihkan keranjang dari item yang mungkin sudah tidak ada di menu
         const originalCartLength = cartFromStorage.length;
-        state.cart = cartFromStorage.filter(cartItem => state.menu.some(menuItem => menuItem.id === cartItem.id));
+        
+        state.cart = cartFromStorage.filter(cartItem => 
+            state.menu.some(menuItem => menuItem.id === cartItem.id)
+        );
         
         if (state.cart.length < originalCartLength) {
-            console.warn("Beberapa item telah dihapus dari keranjang karena tidak lagi tersedia.");
-            saveCart(); // Simpan keranjang yang sudah bersih
+            console.warn("Beberapa item telah dihapus dari keranjang karena tidak lagi tersedia di menu.");
+            saveCart(); // Save the cleaned cart
         }
     }
 
@@ -328,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- INITIALIZATION ---
     function initializeApp() {
         setupInitialData();
-        loadState();
+        loadAndSyncState(); // Use the new centralized function
         renderAll();
         setupEventListeners();
         setInterval(checkNotifications, 4000);
@@ -361,8 +366,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.categoryFilter.innerHTML = allCategories.map((cat, i) => `<button data-category="${cat.name}" class="category-btn flex flex-col items-center space-y-2 flex-shrink-0 w-20"><div class="w-16 h-16 rounded-2xl flex items-center justify-center ${i === 0 ? 'bg-red-600 text-white' : 'bg-white'} text-2xl shadow-sm">${cat.icon}</div><span class="text-sm font-medium ${i === 0 ? 'text-red-600' : 'text-slate-600'}">${cat.name}</span></button>`).join('');
     }
 
+    // --- FIX: renderMenu now only handles rendering, not data loading ---
     function renderMenu(category = 'All', searchTerm = '') {
-        state.menu = JSON.parse(localStorage.getItem('menuItems')) || [];
+        // The line that re-loaded menu from localStorage is removed for consistency.
+        // It now relies on the state loaded by loadAndSyncState().
         let filteredMenu = state.menu.filter(item => 
             (category === 'All' || item.category === category) && 
             item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -388,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCartTotal() {
         return state.cart.reduce((sum, item) => {
             const menuItem = state.menu.find(m => m.id === item.id);
+            // This calculation is now more reliable because `state.menu` is consistent.
             return sum + (menuItem?.price || 0) * item.quantity;
         }, 0);
     }
@@ -396,7 +404,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalQuantity = state.cart.reduce((sum, item) => sum + item.quantity, 0);
         dom.cartCount.textContent = totalQuantity;
         
-        // IMPROVEMENT: Animasi 'pop' pada ikon keranjang
         dom.cartCount.classList.add('cart-pop');
         dom.cartCount.addEventListener('animationend', () => dom.cartCount.classList.remove('cart-pop'), { once: true });
 
@@ -409,7 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCartItems() {
         const total = getCartTotal();
         if (state.cart.length === 0) {
-            // IMPROVEMENT: Tampilan keranjang kosong yang lebih baik
             dom.cartItems.innerHTML = `<div class="text-center py-12 flex flex-col items-center h-full justify-center">
                 <svg class="mx-auto h-20 w-20 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 <h4 class="mt-4 text-lg font-semibold text-slate-700">Keranjang Belanja Kosong</h4>
@@ -421,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         dom.cartItems.innerHTML = state.cart.map(cartItem => {
             const menuItem = state.menu.find(m => m.id === cartItem.id);
-            if (!menuItem) return ''; // Seharusnya tidak terjadi karena sudah difilter di loadState
+            if (!menuItem) return '';
             return `<div class="flex justify-between items-center py-3 border-b">
                 <div class="flex items-center space-x-3">
                     <img src="${menuItem.image}" class="w-12 h-12 object-contain bg-slate-100 rounded-lg p-1" onerror="this.onerror=null;this.src='https://placehold.co/48x48/f1f5f9/dc2626?text=Img';">
@@ -436,7 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="font-semibold w-4 text-center">${cartItem.quantity}</span>
                         <button data-id="${cartItem.id}" class="increase-qty-btn bg-red-600 text-white w-7 h-7 rounded-full font-bold">+</button>
                     </div>
-                    <!-- IMPROVEMENT: Tombol hapus item -->
                     <button data-id="${cartItem.id}" class="remove-item-btn text-slate-400 hover:text-red-500 ml-4">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
                     </button>
@@ -509,7 +514,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CHECKOUT FLOW ---
     function startCheckout() { 
-        // FIX: Reset data pesanan setiap memulai checkout baru
         state.orderData = {}; 
         openModal('checkoutTypeModal'); 
     }
@@ -589,7 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveUser();
         
         state.cart = [];
-        saveCart(); // Simpan keranjang kosong
+        saveCart(); 
         updateCartUI(); 
         renderUserInfo();
         
@@ -708,3 +712,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
