@@ -72,6 +72,7 @@
                 <div class="bg-white p-5 rounded-xl shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-lg">Kategori Menu</h3>
+                        <button id="addCategoryBtn" class="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full hover:bg-red-200 transition">+ Tambah</button>
                     </div>
                     <div id="categories-container" class="space-y-2"></div>
                 </div>
@@ -80,7 +81,7 @@
     </main>
     
     <!-- Floating Action Button (FAB) -->
-    <button id="fab" class="fixed bottom-24 right-5 bg-red-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl font-light transform hover:scale-110 transition-transform z-40">
+    <button id="fab" class="hidden fixed bottom-24 right-5 bg-red-600 text-white w-14 h-14 rounded-full shadow-lg items-center justify-center text-3xl font-light transform hover:scale-110 transition-transform z-40">
         +
     </button>
 
@@ -146,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle: document.getElementById('modal-title'),
         mainForm: document.getElementById('main-form'),
         closeModalBtn: document.getElementById('close-modal-btn'),
+        addCategoryBtn: document.getElementById('addCategoryBtn'),
     };
     
     // --- DATA HANDLING (localStorage) ---
@@ -184,9 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- RENDER FUNCTIONS ---
     function renderAll() {
         if(state.activePage === 'page-orders') renderOrders();
-        if(state.activePage === 'page-menu') renderMenu();
-        if(state.activePage === 'page-customers') renderCustomers();
-        if(state.activePage === 'page-settings') renderSettings();
+        else if(state.activePage === 'page-menu') renderMenu();
+        else if(state.activePage === 'page-customers') renderCustomers();
+        else if(state.activePage === 'page-settings') renderSettings();
     }
 
     function renderOrders() {
@@ -271,11 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function deriveCustomersFromOrders() {
         const customersMap = new Map();
-        // Get customer data directly from orders to avoid async issues
         state.orders.forEach(order => {
              const userId = order.userId;
              const userInOrder = order.details.name;
-             // Try to find more complete user data from localStorage if available
              const fullUser = JSON.parse(localStorage.getItem('currentUser'));
              if (userId && !customersMap.has(userId)) {
                  customersMap.set(userId, {
@@ -295,7 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.headerTitle.textContent = pageTitles[targetPageId];
         dom.pages.forEach(p => p.classList.toggle('active', p.id === targetPageId));
         dom.navLinks.forEach(l => l.classList.toggle('active', l.dataset.target === targetPageId));
-        dom.fab.style.display = ['page-menu', 'page-settings'].includes(targetPageId) ? 'flex' : 'none';
+        
+        // --- FIXED: FAB visibility logic ---
+        dom.fab.style.display = (targetPageId === 'page-menu') ? 'flex' : 'none';
+        
         renderAll();
     }
 
@@ -369,15 +372,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
+        // Bottom Navigation
         dom.navLinks.forEach(link => link.addEventListener('click', () => switchPage(link.dataset.target)));
+        
+        // FAB to add menu
         dom.fab.addEventListener('click', () => {
-            if (state.activePage === 'page-menu') openFormModal('add-menu');
-            if (state.activePage === 'page-settings') openFormModal('add-category');
+            if (state.activePage === 'page-menu') {
+                openFormModal('add-menu');
+            }
+        });
+
+        // --- FIXED: Added event listener for "+ Tambah" category button ---
+        dom.addCategoryBtn.addEventListener('click', () => {
+            openFormModal('add-category');
         });
         
+        // Modal close button
         dom.closeModalBtn.addEventListener('click', () => dom.formModal.classList.add('hidden'));
+        
+        // Universal form submission
         dom.mainForm.addEventListener('submit', handleFormSubmit);
 
+        // Delegated event listeners for dynamically created content
         document.body.addEventListener('change', e => {
             if (e.target.matches('.order-status-selector')) {
                 const orderId = e.target.dataset.id;
@@ -394,23 +410,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.body.addEventListener('click', e => {
-            if (e.target.matches('.edit-menu-btn')) {
-                openFormModal('edit-menu', state.menu.find(m => m.id === e.target.dataset.id));
+            const editBtn = e.target.closest('.edit-menu-btn');
+            if (editBtn) {
+                const menuItem = state.menu.find(m => m.id === editBtn.dataset.id);
+                if (menuItem) openFormModal('edit-menu', menuItem);
             }
-            if (e.target.matches('.delete-menu-btn')) {
+
+            const deleteBtn = e.target.closest('.delete-menu-btn');
+            if (deleteBtn) {
                 if (confirm('Yakin ingin hapus menu ini?')) {
-                    state.menu = state.menu.filter(m => m.id !== e.target.dataset.id);
-                    saveState(); renderMenu();
+                    state.menu = state.menu.filter(m => m.id !== deleteBtn.dataset.id);
+                    saveState(); 
+                    renderMenu();
+                    showToast('Menu berhasil dihapus.', 'success');
                 }
             }
-            if (e.target.matches('.delete-category-btn')) {
+            
+            const deleteCatBtn = e.target.closest('.delete-category-btn');
+            if (deleteCatBtn) {
                  if (confirm('Yakin ingin hapus kategori ini?')) {
-                    state.categories = state.categories.filter(c => c.id !== e.target.dataset.id);
-                    saveState(); renderSettings();
+                    state.categories = state.categories.filter(c => c.id !== deleteCatBtn.dataset.id);
+                    saveState(); 
+                    renderSettings();
+                    showToast('Kategori berhasil dihapus.', 'success');
                 }
             }
         });
 
+        // Promo form submission
         document.getElementById('promo-form').addEventListener('submit', e => {
             e.preventDefault();
             state.settings.promo.title = document.getElementById('promoTitle').value;
