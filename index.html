@@ -1,15 +1,411 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Delisas Agency - Food Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/phosphor-icons"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar for better look on desktop */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .slide-up { animation: slideUp 0.4s ease-in-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        /* Style for radio button labels */
+        .size-label {
+            transition: all 0.2s ease-in-out;
+        }
+        .size-input:checked + .size-label {
+            border-color: #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+            color: #059669; /* green-600 */
+            font-weight: 600;
+        }
+    </style>
 </head>
-<body>
-    <h1>Hello World</h1>
-    <p><h1></h1></p>
+<body class="bg-gray-100 md:bg-gray-200 flex justify-center">
+
+    <div id="app-container" class="w-full max-w-md bg-gray-50 min-h-screen shadow-lg relative overflow-hidden">
+        <div id="page-content" class="h-full overflow-y-auto custom-scrollbar pb-20">
+            <!-- Halaman Utama -->
+            <div id="home-page" class="p-4">
+                <header class="flex justify-between items-center mb-6">
+                    <div>
+                        <p class="text-sm text-gray-500">Hello 👋</p>
+                        <h1 class="text-xl font-bold text-gray-800">Delisas Agency</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-600 hover:text-gray-900"><i class="ph-magnifying-glass text-2xl"></i></button>
+                        <button class="text-gray-600 hover:text-gray-900"><i class="ph-bell text-2xl"></i></button>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-4 gap-4 text-center mb-6">
+                    <div><button class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center"><img src="https://placehold.co/40x40/fff/333?text=🥩" alt="Meat"></button><p class="text-xs mt-1">Daging</p></div>
+                    <div><button class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center"><img src="https://placehold.co/40x40/fff/333?text=🍔" alt="Fast Food"></button><p class="text-xs mt-1">Cepat Saji</p></div>
+                    <div><button class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center"><img src="https://placehold.co/40x40/fff/333?text=🍣" alt="Sushi"></button><p class="text-xs mt-1">Sushi</p></div>
+                    <div><button class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center"><img src="https://placehold.co/40x40/fff/333?text=🥤" alt="Drinks"></button><p class="text-xs mt-1">Minuman</p></div>
+                </div>
+
+                <div class="bg-yellow-300 rounded-2xl p-4 flex items-center mb-6">
+                    <img src="https://placehold.co/100x80/facc15/333333?text=🛵" alt="Promo" class="w-24 h-20 object-cover rounded-lg mr-4">
+                    <div>
+                        <h2 class="font-bold text-gray-800">Penawaran Tahun Baru</h2>
+                        <p class="font-bold text-green-600 text-2xl">Diskon 30%</p>
+                        <button class="mt-2 bg-green-500 text-white text-xs font-bold py-1.5 px-4 rounded-full hover:bg-green-600">Pesan Sekarang</button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-800">Best Sellers</h2>
+                    <a href="#" class="text-sm font-semibold text-green-500 hover:text-green-600">Lihat Semua</a>
+                </div>
+                <div id="best-sellers" class="grid grid-cols-2 gap-4">
+                    <!-- Produk dimuat di sini -->
+                </div>
+            </div>
+
+            <!-- Halaman Detail Produk -->
+            <div id="product-detail-page" class="hidden">
+                <!-- Konten detail produk dimuat di sini -->
+            </div>
+
+            <!-- Halaman Keranjang -->
+            <div id="cart-page" class="hidden p-4">
+                <header class="flex justify-between items-center mb-6">
+                    <button onclick="showPage('home-page')" class="text-gray-600"><i class="ph-arrow-left text-2xl"></i></button>
+                    <h1 class="text-xl font-bold text-gray-800">Keranjang</h1>
+                    <button onclick="clearCart()" class="text-gray-600"><i class="ph-trash text-2xl"></i></button>
+                </header>
+                <div id="cart-items" class="space-y-4"></div>
+                <div id="cart-summary" class="mt-6 pt-4"></div>
+            </div>
+
+            <!-- Halaman Checkout (opsional, bisa digabung dengan keranjang) -->
+        </div>
+
+        <!-- Navigasi Bawah -->
+        <nav class="absolute bottom-0 left-0 w-full bg-white/80 backdrop-blur-sm border-t border-gray-200 flex justify-around items-center h-20 rounded-t-2xl">
+            <button onclick="showPage('home-page')" class="nav-btn active text-green-500 flex flex-col items-center space-y-1">
+                <i class="ph-house-fill text-2xl"></i><span class="text-xs font-semibold">Home</span>
+            </button>
+            <button class="nav-btn text-gray-400 flex flex-col items-center space-y-1">
+                <i class="ph-heart text-2xl"></i><span class="text-xs">Suka</span>
+            </button>
+            <button onclick="showPage('cart-page')" class="nav-btn relative text-gray-400 flex flex-col items-center space-y-1">
+                <i class="ph-shopping-cart-simple text-2xl"></i>
+                <span id="cart-count" class="absolute top-0 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                <span class="text-xs">Keranjang</span>
+            </button>
+            <button class="nav-btn text-gray-400 flex flex-col items-center space-y-1">
+                <i class="ph-user text-2xl"></i><span class="text-xs">Profil</span>
+            </button>
+        </nav>
+    </div>
+
     <script>
+        // --- DATABASE PRODUK ---
+        const products = [
+            { 
+                id: 1, name: 'Melting Cheese Pizza', store: 'Pizza Italiano', rating: 4.8, reviews: '2.2k', image: 'https://placehold.co/400x400/f97316/ffffff?text=Pizza', 
+                sizes: [
+                    { name: 'Small', price: 8.99 },
+                    { name: 'Medium', price: 10.99 },
+                    { name: 'Large', price: 12.99 }
+                ],
+                addons: [
+                    { name: 'Chicken', price: 1.40, image: 'https://placehold.co/40x40/fff/333?text=🍗' },
+                    { name: 'Mushroom', price: 0.80, image: 'https://placehold.co/40x40/fff/333?text=🍄' }
+                ],
+                calories: 44, time: '20 min' 
+            },
+            { 
+                id: 2, name: 'Classic Cheese Burger', store: 'Burger Hut', rating: 4.7, reviews: '1.8k', image: 'https://placehold.co/400x400/22c55e/ffffff?text=Burger', 
+                sizes: [
+                    { name: 'Regular', price: 4.99 },
+                    { name: 'Large', price: 6.49 }
+                ],
+                addons: [
+                    { name: 'Extra Patty', price: 2.00, image: 'https://placehold.co/40x40/fff/333?text=🍔' },
+                    { name: 'Bacon', price: 1.20, image: 'https://placehold.co/40x40/fff/333?text=🥓' }
+                ],
+                calories: 35, time: '15 min' 
+            },
+        ];
+
+        let cart = [];
+        let currentDetail = {
+            productId: null,
+            size: null,
+            addons: [],
+            quantity: 1
+        };
+
+        const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
+        // --- Navigasi & Render ---
+        const showPage = (pageId) => {
+            document.querySelectorAll('#page-content > div').forEach(page => page.classList.add('hidden'));
+            const page = document.getElementById(pageId);
+            page.classList.remove('hidden');
+            page.classList.add('fade-in');
+            document.getElementById('page-content').scrollTop = 0; // Scroll to top
+
+            // Update Nav Button Active State
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.replace('text-green-500', 'text-gray-400'));
+            const activeBtn = pageId === 'cart-page' ? document.querySelector('.nav-btn:nth-child(3)') : document.querySelector('.nav-btn:nth-child(1)');
+            if (activeBtn) activeBtn.classList.replace('text-gray-400', 'text-green-500');
+
+            if (pageId === 'cart-page') renderCart();
+        };
+
+        const renderProducts = () => {
+            const container = document.getElementById('best-sellers');
+            container.innerHTML = products.map(p => `
+                <div class="bg-white rounded-2xl p-3 shadow-sm cursor-pointer" onclick="showProductDetail(${p.id})">
+                    <img src="${p.image.replace('400x400', '150x150')}" alt="${p.name}" class="w-full h-24 object-cover rounded-xl mb-3">
+                    <h3 class="font-bold text-sm text-gray-800 truncate">${p.name}</h3>
+                    <div class="flex items-center text-xs text-gray-400 space-x-2 my-1">
+                        <span><i class="ph-fire-simple-fill text-orange-500"></i> ${p.calories} Cal</span>
+                        <span><i class="ph-clock-fill text-yellow-500"></i> ${p.time}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p class="text-green-600 font-bold text-lg">${formatCurrency(p.sizes[0].price)}</p>
+                        <button onclick="event.stopPropagation(); addToCartSimple(${p.id})" class="bg-gray-100 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-200 transition">
+                            <i class="ph-plus-bold text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        };
         
+        const showProductDetail = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            currentDetail = { productId, size: product.sizes[0], addons: [], quantity: 1 };
+
+            const container = document.getElementById('product-detail-page');
+            container.innerHTML = `
+                <div class="relative">
+                    <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover">
+                    <div class="absolute top-4 left-4 flex items-center justify-center w-10 h-10 bg-white/80 rounded-full backdrop-blur-sm">
+                        <button onclick="showPage('home-page')" class="text-gray-800"><i class="ph-arrow-left text-xl"></i></button>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-t-3xl -mt-6 relative">
+                    <h1 class="text-2xl font-bold text-gray-800">${product.name}</h1>
+                    <div class="flex items-center space-x-2 text-gray-500 my-2">
+                        <i class="ph-star-fill text-yellow-400"></i>
+                        <span class="font-semibold">${product.rating} (${product.reviews} reviews)</span>
+                    </div>
+                    
+                    <h2 class="font-bold text-gray-800 mt-6 mb-2">Ukuran</h2>
+                    <div class="flex space-x-3">
+                        ${product.sizes.map((size, index) => `
+                            <div>
+                                <input type="radio" id="size-${size.name}" name="size" value="${size.name}" class="hidden size-input" ${index === 0 ? 'checked' : ''} onchange="updateDetailSize('${size.name}')">
+                                <label for="size-${size.name}" class="size-label cursor-pointer block text-center border-2 border-gray-200 rounded-xl px-6 py-2">
+                                    <p class="font-semibold">${size.name}</p>
+                                    <p class="text-sm font-bold">${formatCurrency(size.price)}</p>
+                                </label>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <h2 class="font-bold text-gray-800 mt-6 mb-2">Tambahan</h2>
+                    <div class="space-y-3">
+                        ${product.addons.map(addon => `
+                            <div class="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm">
+                                <div class="flex items-center">
+                                    <img src="${addon.image}" class="w-10 h-10 rounded-lg mr-3">
+                                    <div>
+                                        <p class="font-semibold text-gray-800">${addon.name}</p>
+                                        <p class="text-sm text-green-600 font-bold">${formatCurrency(addon.price)}</p>
+                                    </div>
+                                </div>
+                                <input type="checkbox" onchange="updateDetailAddon('${addon.name}', this.checked)" class="h-6 w-6 rounded-md border-gray-300 text-green-600 focus:ring-green-500">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <!-- Bottom bar for detail page -->
+                <div class="sticky bottom-0 left-0 w-full bg-white/80 backdrop-blur-sm p-4 border-t flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="updateDetailQuantity(-1)" class="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center font-bold text-gray-700">-</button>
+                        <span id="detail-quantity" class="font-bold text-xl">1</span>
+                        <button onclick="updateDetailQuantity(1)" class="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center font-bold text-gray-700">+</button>
+                    </div>
+                    <button onclick="addToCartFromDetail()" class="bg-green-500 text-white font-bold py-3 px-6 rounded-xl flex-grow ml-4 hover:bg-green-600">
+                        Tambah <span id="detail-total-price">${formatCurrency(product.sizes[0].price)}</span>
+                    </button>
+                </div>
+            `;
+            showPage('product-detail-page');
+            updateDetailPrice();
+        };
+
+        // --- Logika Detail Produk ---
+        const updateDetailSize = (sizeName) => {
+            const product = products.find(p => p.id === currentDetail.productId);
+            currentDetail.size = product.sizes.find(s => s.name === sizeName);
+            updateDetailPrice();
+        };
+
+        const updateDetailAddon = (addonName, isChecked) => {
+            const product = products.find(p => p.id === currentDetail.productId);
+            const addon = product.addons.find(a => a.name === addonName);
+            if (isChecked) {
+                currentDetail.addons.push(addon);
+            } else {
+                currentDetail.addons = currentDetail.addons.filter(a => a.name !== addonName);
+            }
+            updateDetailPrice();
+        };
+
+        const updateDetailQuantity = (change) => {
+            if (currentDetail.quantity + change > 0) {
+                currentDetail.quantity += change;
+                document.getElementById('detail-quantity').textContent = currentDetail.quantity;
+                updateDetailPrice();
+            }
+        };
+
+        const updateDetailPrice = () => {
+            let total = currentDetail.size.price;
+            total += currentDetail.addons.reduce((sum, addon) => sum + addon.price, 0);
+            total *= currentDetail.quantity;
+            document.getElementById('detail-total-price').textContent = formatCurrency(total);
+        };
+        
+        // --- Logika Keranjang ---
+        const addToCartSimple = (productId) => {
+            const product = products.find(p => p.id === productId);
+            const cartItem = {
+                cartId: Date.now(),
+                ...product,
+                size: product.sizes[0],
+                addons: [],
+                quantity: 1,
+            }
+            cart.push(cartItem);
+            updateCartUI();
+        };
+        
+        const addToCartFromDetail = () => {
+            const product = products.find(p => p.id === currentDetail.productId);
+            const cartItem = {
+                cartId: Date.now(),
+                ...product,
+                size: currentDetail.size,
+                addons: [...currentDetail.addons],
+                quantity: currentDetail.quantity
+            };
+            cart.push(cartItem);
+            updateCartUI();
+            showPage('home-page');
+        };
+
+        const updateCartQuantity = (cartId, change) => {
+            const item = cart.find(i => i.cartId === cartId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.cartId !== cartId);
+                }
+            }
+            renderCart();
+        };
+        
+        const clearCart = () => {
+            cart = [];
+            renderCart();
+        }
+
+        const updateCartUI = () => {
+            const cartCount = document.getElementById('cart-count');
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+        };
+
+        const renderCart = () => {
+            updateCartUI();
+            const itemsContainer = document.getElementById('cart-items');
+            const summaryContainer = document.getElementById('cart-summary');
+            
+            if (cart.length === 0) {
+                itemsContainer.innerHTML = `<div class="text-center py-16"><p class="text-gray-500">Keranjang Anda kosong.</p></div>`;
+                summaryContainer.innerHTML = '';
+                return;
+            }
+
+            itemsContainer.innerHTML = cart.map(item => `
+                <div class="flex items-center bg-white p-3 rounded-xl shadow-sm">
+                    <img src="${item.image.replace('400x400', '150x150')}" class="w-20 h-20 object-cover rounded-lg mr-4">
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-gray-800">${item.name}</h4>
+                        <p class="text-xs text-gray-500">${item.store}</p>
+                        <p class="font-bold text-green-600 mt-1">${formatCurrency((item.size.price + item.addons.reduce((s,a)=>s+a.price, 0)) * item.quantity)}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="updateCartQuantity(${item.cartId}, -1)" class="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-gray-700">-</button>
+                        <span class="font-bold text-lg">${item.quantity}</span>
+                        <button onclick="updateCartQuantity(${item.cartId}, 1)" class="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-gray-700">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.size.price + item.addons.reduce((s, a) => s + a.price, 0)) * item.quantity, 0);
+            const delivery = 5.00;
+            const total = subtotal + delivery;
+
+            summaryContainer.innerHTML = `
+                <div class="bg-white p-4 rounded-xl shadow-sm space-y-3">
+                     <div class="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span class="font-semibold">${formatCurrency(subtotal)}</span>
+                    </div>
+                     <div class="flex justify-between text-gray-600">
+                        <span>Pengiriman</span>
+                        <span class="font-semibold">${formatCurrency(delivery)}</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-xl text-gray-800 pt-3 border-t">
+                        <span>Total</span>
+                        <span>${formatCurrency(total)}</span>
+                    </div>
+                </div>
+                <button class="mt-6 w-full bg-green-500 text-white font-bold py-4 px-4 rounded-xl hover:bg-green-600 transition duration-300">
+                    Lanjutkan ke Pembayaran - ${formatCurrency(total)}
+                </button>
+            `;
+        };
+
+        // --- Inisialisasi ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            updateCartUI();
+        });
     </script>
 </body>
 </html>
+
